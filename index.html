@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>67StreetFood - Delicious Street Food Delivered</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #f97316;
+        }
+
+        nav {
+            display: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: #374151;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #f97316;
+        }
+
+        .header-buttons {
+            display: none;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #f97316;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            color: #f97316;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #f97316;
+            border: 2px solid #f97316;
+        }
+
+        .btn-outline:hover {
+            background: #fff7ed;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: block;
+        }
+
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        @media (min-width: 768px) {
+            nav, .header-buttons {
+                display: flex;
+            }
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(to bottom, #fff7ed, white);
+            padding: 5rem 1rem;
+        }
+
+        .hero-grid {
+            display: grid;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .hero h2 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h2 .highlight {
+            color: #f97316;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: #4b5563;
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .hero-buttons {
+                flex-direction: row;
+            }
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #374151;
+        }
+
+        .hero-image {
+            background: linear-gradient(135deg, #fb923c, #ef4444);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transition: transform 0.3s;
+        }
+
+        .hero-image:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .hero-card-inner {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .food-emojis {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 1rem;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 2.25rem;
+            font-weight: bold;
+            text-align: center;
+            color: #111827;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 1rem;
+            transition: box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            width: 5rem;
+            height: 5rem;
+            background: #ffedd5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+        }
+
+        .feature-card h4 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: #4b5563;
+        }
+
+        /* Menu Section */
+        .menu {
+            padding: 5rem 1rem;
+            background: linear-gradient(to bottom, #fff7ed, white);
+        }
+
+        .menu-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .menu-item-emoji {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .menu-item h5 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-align: center;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f97316;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .menu-item button {
+            width: 100%;
+        }
+
+        /* Footer */
+        footer {
+            background: #111827;
+            color: white;
+            padding: 3rem 1rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .footer-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .footer-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f97316;
+            margin-bottom: 1rem;
+        }
+
+        footer h5 {
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        footer ul {
+            list-style: none;
+        }
+
+        footer ul li {
+            margin-bottom: 0.5rem;
+            color: #9ca3af;
+        }
+
+        footer a, footer button {
+            color: #9ca3af;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 0;
+            font-size: inherit;
+        }
+
+        footer a:hover, footer button:hover {
+            color: #f97316;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 28rem;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content.large {
+            max-width: 48rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #4b5563;
+        }
+
+        .modal h2 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            color: #4b5563;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        .modal-footer {
+            text-align: center;
+            color: #4b5563;
+            margin-top: 1rem;
+        }
+
+        .modal-footer button {
+            color: #f97316;
+            font-weight: 600;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">67StreetFood</h1>
+                
+                <nav>
+                    <a href="#menu">Menu</a>
+                    <a href="#about">About</a>
+                    <a href="#contact">Contact</a>
+                </nav>
+                
+                <div class="header-buttons">
+                    <button class="btn btn-secondary" onclick="showModal('login')">
+                        👤 Sign In
+                    </button>
+                    <button class="btn btn-primary">
+                        🛒 Cart
+                    </button>
+                </div>
+
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+            </div>
+
+            <div class="mobile-menu" id="mobileMenu">
+                <a href="#menu">Menu</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <button class="btn btn-secondary" onclick="showModal('login')">Sign In</button>
+                <button class="btn btn-primary">Cart</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div>
+                    <h2>Delicious Street Food <span class="highlight">Delivered</span></h2>
+                    <p>Experience authentic street food flavors from local vendors, delivered fresh to your doorstep. Fast, tasty, and always satisfying.</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary btn-large" onclick="showModal('register')">Order Now</button>
+                        <button class="btn btn-outline btn-large" onclick="showModal('vendor')">Become a Vendor</button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            🕐 30 min delivery
+                        </div>
+                        <div class="hero-stat">
+                            ⭐ 4.8 rating
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-card">
+                        <div class="hero-card-inner">
+                            <div>
+                                <div class="food-emojis">🍔🌮🍕</div>
+                                <p style="font-weight: 600; color: #374151;">Your favorite food</p>
+                                <p style="color: #4b5563;">is just a click away</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h3 class="section-title">Why Choose Us</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📍</div>
+                    <h4>Local Vendors</h4>
+                    <p>Support local businesses and enjoy authentic street food from your neighborhood</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🕐</div>
+                    <h4>Fast Delivery</h4>
+                    <p>Hot food delivered to your door in 30 minutes or less, guaranteed fresh</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⭐</div>
+                    <h4>Quality Food</h4>
+                    <p>Every vendor is verified and rated by our community for the best experience</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="menu">
+        <div class="container">
+            <h3 class="section-title">Popular Items</h3>
+            <div class="menu-grid">
+                <div class="menu-item">
+                    <div class="menu-item-emoji">🍔</div>
+                    <h5>Classic Burger</h5>
+                    <div class="menu-item-price">$8.99</div>
+                    <button class="btn btn-primary">Add to Cart</button>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-emoji">🌮</div>
+                    <h5>Street Tacos</h5>
+                    <div class="menu-item-price">$6.99</div>
+                    <button class="btn btn-primary">Add to Cart</button>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-emoji">🍕</div>
+                    <h5>Pizza Slice</h5>
+                    <div class="menu-item-price">$4.99</div>
+                    <button class="btn btn-primary">Add to Cart</button>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-emoji">🍜</div>
+                    <h5>Fried Rice</h5>
+                    <div class="menu-item-price">$7.99</div>
+                    <button class="btn btn-primary">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">67StreetFood</div>
+                    <p style="color: #9ca3af;">Bringing authentic street food flavors to your doorstep</p>
+                </div>
+                <div>
+                    <h5>Quick Links</h5>
+                    <ul>
+                        <li><a href="#menu">Menu</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><button onclick="showModal('vendor')">Vendor Portal</button></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>Contact</h5>
+                    <ul>
+                        <li>support@67streetfood.com</li>
+                        <li>+1 (555) 123-4567</li>
+                        <li>Available 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 67StreetFood. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('login')">✕</button>
+            <h2>Welcome Back</h2>
+            <form onsubmit="return false;">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
+            </form>
+            <p class="modal-footer">
+                Don't have an account? 
+                <button onclick="switchModal('login', 'register')">Register</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('register')">✕</button>
+            <h2>Create Account</h2>
+            <form onsubmit="return false;">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
+            </form>
+            <p class="modal-footer">
+                Already have an account? 
+                <button onclick="switchModal('register', 'login')">Sign In</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Vendor Register Modal -->
+    <div class="modal" id="vendorModal">
+        <div class="modal-content large">
+            <button class="modal-close" onclick="closeModal('vendor')">✕</button>
+            <h2>Vendor Portal Registration</h2>
+            <p class="modal-subtitle">Join 67StreetFood as a vendor and reach thousands of customers</p>
+            <form onsubmit="return false;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Business Name</label>
+                        <input type="text" placeholder="Your Restaurant">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" placeholder="John Doe">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="business@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" placeholder="+1 (555) 000-0000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Business Address</label>
+                    <input type="text" placeholder="123 Street Name, City, State">
+                </div>
+                <div class="form-group">
+                    <label>Cuisine Type</label>
+                    <select>
+                        <option>Select cuisine type</option>
+                        <option>Asian</option>
+                        <option>Mexican</option>
+                        <option>Italian</option>
+                        <option>American</option>
+                        <option>Mediterranean</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Business License Number</label>
+                    <input type="text" placeholder="BL-123456">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Submit Application</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+
+        function showModal(type) {
+            const modalId = type + 'Modal';
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(type) {
+            const modalId = type + 'Modal';
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function switchModal(from, to) {
+            closeModal(from);
+            showModal(to);
+        }
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
