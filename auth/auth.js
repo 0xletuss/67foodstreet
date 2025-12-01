@@ -1,6 +1,6 @@
 // auth.js - Authentication Handler
 // Configuration
-const API_BASE_URL = 'http://localhost:5000/api/auth'; // Change this to your backend URL
+const API_BASE_URL = 'https://six7backend.onrender.com/api/auth'; // Updated to Render backend
 
 // Utility function to show messages
 function showMessage(elementId, message, isError = false) {
@@ -50,19 +50,23 @@ function logout() {
 
 // Redirect based on user type
 function redirectToDashboard(userType) {
+    // All users go to the same dashboard for now
+   // window.location.href = '/dashboard/dashboard.html';
+    
+    // If you want different dashboards later, uncomment and create separate files:
     switch(userType) {
         case 'customer':
-            window.location.href = '/customer/dashboard.html';
-            break;
-        case 'seller':
-            window.location.href = '/seller/dashboard.html';
-            break;
-        case 'admin':
-            window.location.href = '/admin/dashboard.html';
-            break;
-        default:
-            window.location.href = '/index.html';
-    }
+            window.location.href = '/dashboard/customer_dashboard.html';
+             break;
+         case 'seller':
+             window.location.href = '/dashboard/seller_dashboard.html';
+             break;
+         case 'admin':
+             window.location.href = '/dashboard/admin_dashboard.html';
+             break;
+         default:
+             window.location.href = '/index.html';
+     }
 }
 
 // ==================== CUSTOMER REGISTRATION ====================
