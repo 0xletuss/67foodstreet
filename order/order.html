@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Place Order - E-Commerce</title>
+    <title>Place Order - 67StreetFood</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -13,8 +13,8 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
             min-height: 100vh;
             padding: 2rem 1rem;
         }
@@ -26,9 +26,9 @@
 
         .header {
             background: white;
-            padding: 1.5rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
@@ -37,28 +37,35 @@
 
         .header h1 {
             color: #1f2937;
-            font-size: 1.75rem;
+            font-size: 2rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
 
+        .header h1 i {
+            color: #f97316;
+        }
+
         .back-btn {
-            background: #6366f1;
-            color: white;
-            border: none;
+            background: white;
+            color: #f97316;
+            border: 2px solid #f97316;
             padding: 0.75rem 1.5rem;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             cursor: pointer;
             font-size: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            font-weight: 600;
         }
 
         .back-btn:hover {
-            background: #4f46e5;
+            background: #fff7ed;
+            color: #ea580c;
+            border-color: #ea580c;
         }
 
         .main-content {
@@ -69,9 +76,9 @@
 
         .order-form, .order-summary {
             background: white;
-            border-radius: 12px;
+            border-radius: 1rem;
             padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .section-title {
@@ -80,7 +87,13 @@
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            font-weight: 700;
+        }
+
+        .section-title i {
+            color: #f97316;
+            font-size: 1.75rem;
         }
 
         .form-group {
@@ -90,7 +103,7 @@
         .form-group label {
             display: block;
             color: #374151;
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 0.5rem;
         }
 
@@ -98,23 +111,24 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.75rem 1rem;
             border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             font-size: 1rem;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #6366f1;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
         }
 
         .form-group textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 100px;
         }
 
         .radio-group {
@@ -135,34 +149,43 @@
         .radio-option label {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
             padding: 1rem;
             border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.3s;
+            text-align: center;
         }
 
         .radio-option input[type="radio"]:checked + label {
-            border-color: #6366f1;
-            background: #eef2ff;
+            border-color: #f97316;
+            background: #fff7ed;
+            color: #f97316;
         }
 
         .radio-option label i {
             font-size: 1.5rem;
-            color: #6366f1;
+        }
+
+        .radio-option label span {
+            font-weight: 500;
         }
 
         .cart-items {
             margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 1.5rem;
         }
 
         .cart-item {
             display: flex;
             gap: 1rem;
             padding: 1rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
+            background: #f9fafb;
+            border-radius: 0.5rem;
             margin-bottom: 1rem;
         }
 
@@ -170,7 +193,7 @@
             width: 80px;
             height: 80px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 0.5rem;
         }
 
         .cart-item-details {
@@ -184,8 +207,9 @@
         }
 
         .cart-item-price {
-            color: #6366f1;
-            font-weight: 500;
+            color: #f97316;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
         }
 
         .cart-item-quantity {
@@ -197,15 +221,20 @@
             display: flex;
             justify-content: space-between;
             padding: 0.75rem 0;
-            border-bottom: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.95rem;
         }
 
         .summary-row.total {
-            border-bottom: none;
             font-size: 1.25rem;
             font-weight: 700;
             color: #1f2937;
             padding-top: 1rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .summary-row.total span:last-child {
+            color: #f97316;
         }
 
         .payment-methods {
@@ -231,29 +260,36 @@
             gap: 0.5rem;
             padding: 1rem;
             border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
+            background: #f9fafb;
         }
 
         .payment-option input[type="radio"]:checked + label {
-            border-color: #6366f1;
-            background: #eef2ff;
+            border-color: #f97316;
+            background: #fff7ed;
         }
 
         .payment-option label i {
             font-size: 2rem;
-            color: #6366f1;
+            color: #f97316;
+        }
+
+        .payment-option label span {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
         }
 
         .place-order-btn {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
             color: white;
             border: none;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             font-size: 1.125rem;
             font-weight: 600;
             cursor: pointer;
@@ -262,16 +298,18 @@
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            transition: transform 0.2s;
+            transition: all 0.3s;
         }
 
         .place-order-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
 
         .place-order-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
         .empty-cart {
@@ -281,7 +319,7 @@
 
         .empty-cart i {
             font-size: 4rem;
-            color: #9ca3af;
+            color: #d1d5db;
             margin-bottom: 1rem;
         }
 
@@ -307,13 +345,13 @@
         .loading-spinner {
             background: white;
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: 1rem;
             text-align: center;
         }
 
         .spinner {
             border: 4px solid #f3f4f6;
-            border-top: 4px solid #6366f1;
+            border-top: 4px solid #f97316;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -343,6 +381,51 @@
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
+            }
+
+            .payment-methods {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            .payment-methods {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .radio-group {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .header, .order-form, .order-summary {
+                padding: 1.5rem;
+                border-radius: 0.75rem;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .main-content {
+                gap: 1.5rem;
             }
         }
     </style>

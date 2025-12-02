@@ -149,9 +149,6 @@ function displayProducts(products) {
                 <div class="product-name" title="${product.productName}">
                     ${product.productName}
                 </div>
-                <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;" title="${product.description}">
-                    ${product.description || 'Fresh and delicious'}
-                </p>
                 <div class="product-price">
                     ₱${parseFloat(product.unitPrice).toFixed(2)}
                 </div>
@@ -423,34 +420,51 @@ function displayOrders(orders) {
         return;
     }
     
-    container.innerHTML = orders.map(order => `
-        <div class="order-card">
-            <div class="order-header">
-                <div>
+    container.innerHTML = orders.map((order, index) => `
+        <div class="order-card" id="order-${index}">
+            <div class="order-header" onclick="toggleOrderDetails('order-${index}')">
+                <div class="order-header-left">
                     <div class="order-id">Order #${order.orderId}</div>
                     <div class="order-date">${new Date(order.orderDate).toLocaleDateString()}</div>
                 </div>
-                <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
-            </div>
-            
-            <div class="order-items">
-                ${order.items?.length || 0} item(s) • Total: <strong>₱${parseFloat(order.totalAmount).toFixed(2)}</strong>
-            </div>
-            
-            <div class="order-footer">
-                <div class="order-total">
-                    ₱${parseFloat(order.totalAmount).toFixed(2)}
-                </div>
-                <div style="display: flex; gap: 0.75rem;">
-                    <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;"
-                            onclick="viewOrderDetails(${order.orderId})">
-                        <i class="fas fa-eye"></i> Details
+                <div class="order-header-right">
+                    <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+                    <button class="collapse-toggle" onclick="event.stopPropagation(); toggleOrderDetails('order-${index}')">
+                        <i class="fas fa-chevron-down"></i>
                     </button>
-                    ${order.status === 'Pending' || order.status === 'Confirmed' ? 
-                        `<button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem; color: #ef4444; border: 2px solid #ef4444;" 
-                                 onclick="cancelOrder(${order.orderId})">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>` : ''}
+                </div>
+            </div>
+            
+            <div class="order-details hidden" id="details-order-${index}">
+                <div class="order-items-list">
+                    <h5 style="font-weight: 700; margin-bottom: 1rem; color: #111827;">Order Items</h5>
+                    ${(order.items || []).map(item => `
+                        <div class="order-item">
+                            <div class="order-item-name">${item.productName || 'Product #' + item.productId}</div>
+                            <div class="order-item-details">
+                                <span>Qty: ${item.quantity}</span>
+                                <span>₱${parseFloat(item.unitPrice).toFixed(2)}</span>
+                                <span style="font-weight: 600; color: #f97316;">₱${(item.quantity * item.unitPrice).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="order-footer">
+                    <div class="order-total">
+                        Total: ₱${parseFloat(order.totalAmount).toFixed(2)}
+                    </div>
+                    <div class="order-actions">
+                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                                onclick="viewOrderDetails(${order.orderId})">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        ${order.status === 'Pending' || order.status === 'Confirmed' ? 
+                            `<button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem; color: #ef4444; border: 2px solid #ef4444;" 
+                                     onclick="cancelOrder(${order.orderId})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>` : ''}
+                    </div>
                 </div>
             </div>
         </div>
@@ -464,34 +478,53 @@ async function viewOrderDetails(orderId) {
         const modalContent = document.getElementById('orderDetailsContent');
         
         modalContent.innerHTML = `
-            <div class="mb-3">
-                <h6>Order #${order.orderId}</h6>
-                <p class="text-muted mb-2">Placed on: ${new Date(order.orderDate).toLocaleString()}</p>
-                <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <h6 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #111827;">Order #${order.orderId}</h6>
+                    <span class="status-badge status-${order.status.toLowerCase()}" style="padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">${order.status}</span>
+                </div>
+                <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">Placed on: ${new Date(order.orderDate).toLocaleString()}</p>
             </div>
             
-            <h6 class="mb-3">Order Items:</h6>
-            ${order.items.map(item => `
-                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                    <div>
-                        <strong>${item.productName || 'Product #' + item.productId}</strong>
-                        <br>
-                        <small class="text-muted">Quantity: ${item.quantity} × ₱${parseFloat(item.unitPrice).toFixed(2)}</small>
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
+                <h5 style="font-weight: 700; margin-bottom: 1rem; color: #111827; font-size: 1rem;">Order Items</h5>
+                ${(order.items || []).map(item => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">
+                        <div>
+                            <strong style="color: #111827;">${item.productName || 'Product #' + item.productId}</strong>
+                            <br>
+                            <small style="color: #6b7280;">Qty: ${item.quantity} × ₱${parseFloat(item.unitPrice).toFixed(2)}</small>
+                        </div>
+                        <strong style="color: #f97316; font-size: 1.1rem;">₱${(item.quantity * item.unitPrice).toFixed(2)}</strong>
                     </div>
-                    <strong>₱${(item.quantity * item.unitPrice).toFixed(2)}</strong>
-                </div>
-            `).join('')}
+                `).join('')}
+            </div>
             
-            <div class="mt-3 pt-3 border-top">
-                <h5 class="d-flex justify-content-between">
-                    <span>Total Amount:</span>
-                    <span class="text-primary">₱${parseFloat(order.totalAmount).toFixed(2)}</span>
-                </h5>
+            <div style="padding: 1rem; background: linear-gradient(135deg, #fff7ed, white); border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600; color: #374151; font-size: 1rem;">Total Amount:</span>
+                <span style="font-weight: 700; color: #f97316; font-size: 1.5rem;">₱${parseFloat(order.totalAmount).toFixed(2)}</span>
             </div>
         `;
         
-        const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-        modal.show();
+        const modal = document.getElementById('orderDetailsModal');
+        modal.classList.add('show');
+    }
+}
+
+function closeOrderModal() {
+    const modal = document.getElementById('orderDetailsModal');
+    modal.classList.remove('show');
+}
+
+function toggleOrderDetails(orderId) {
+    const detailsEl = document.getElementById(`details-${orderId}`);
+    const toggleBtn = document.querySelector(`#${orderId} .collapse-toggle`);
+    
+    if (detailsEl) {
+        detailsEl.classList.toggle('hidden');
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('collapsed');
+        }
     }
 }
 
