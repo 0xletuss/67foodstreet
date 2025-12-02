@@ -45,7 +45,7 @@ function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
     localStorage.removeItem('user_type');
-    window.location.href = 'login.html';
+    window.location.href = '/67streetfood/auth/login.html';
 }
 
 // Redirect based on user type
@@ -59,7 +59,7 @@ function redirectToDashboard(userType) {
             window.location.href = '../dashboard/seller_dashboard.html';
             break;
         case 'admin':
-            window.location.href = '../dashboard/admin_dashboard.html';
+            window.location.href = '../dashboard/admin.html';
             break;
         default:
             window.location.href = '../index.html';

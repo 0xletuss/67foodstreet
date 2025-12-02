@@ -1,157 +1,89 @@
-const API_BASE_URL = 'https://six7backend.onrender.com/api/seller';
-let revenueChart = null, uploadedImageUrl = null;
+const API = 'https://six7backend.onrender.com/api/seller';
+let chart = null, imgUrl = null;
 
-// Auth & Init
+// Init
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('access_token');
-    const userType = localStorage.getItem('user_type');
-    
-    if (!token || userType !== 'seller') {
-        alert(userType !== 'seller' ? 'Access denied. Sellers only.' : '');
-        return window.location.href = '../auth/login.html';
-    }
-
+    const token = localStorage.getItem('access_token'), type = localStorage.getItem('user_type');
+    if (!token || type !== 'seller') return alert(type !== 'seller' ? 'Access denied. Sellers only.' : ''), window.location.href = '../auth/login.html';
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.storeName) document.getElementById('sellerName').textContent = user.storeName;
-
-    initializeDashboard();
-    setupEventListeners();
+    initDashboard();
+    setupListeners();
 });
 
-// Event Listeners
-function setupEventListeners() {
-    document.querySelectorAll('.sidebar-menu a[data-section]').forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            navigateToSection(link.getAttribute('data-section'));
-        });
-    });
-
+function setupListeners() {
+    document.querySelectorAll('.sidebar-menu a[data-section]').forEach(l => l.addEventListener('click', e => (e.preventDefault(), nav(l.getAttribute('data-section')))));
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
-    document.getElementById('productImageFile').addEventListener('change', handleImageSelect);
+    document.getElementById('productImageFile').addEventListener('change', handleImg);
     document.getElementById('updateStockBtn').addEventListener('click', updateStock);
     document.getElementById('orderStatusFilter').addEventListener('change', e => loadOrders(e.target.value));
+    document.getElementById('reservationStatusFilter').addEventListener('change', e => loadReservations(e.target.value));
     document.getElementById('revenuePeriod').addEventListener('change', e => loadRevenue(e.target.value));
-    document.getElementById('productModal').addEventListener('hidden.bs.modal', resetProductForm);
+    document.getElementById('productModal').addEventListener('hidden.bs.modal', resetForm);
 }
 
-// Image Upload
-function handleImageSelect(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-        showNotification('Invalid file type. Use PNG, JPG, GIF, or WEBP', 'error');
-        return e.target.value = '';
-    }
-    
-    if (file.size > 10 * 1024 * 1024) {
-        showNotification('File too large. Max 10MB', 'error');
-        return e.target.value = '';
-    }
-    
-    const reader = new FileReader();
-    reader.onload = e => {
-        document.getElementById('imagePreview').src = e.target.result;
-        document.getElementById('imagePreviewContainer').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+function handleImg(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (!['image/png','image/jpeg','image/jpg','image/gif','image/webp'].includes(f.type)) return notify('Invalid file type', 'error'), e.target.value = '';
+    if (f.size > 10485760) return notify('File too large. Max 10MB', 'error'), e.target.value = '';
+    const r = new FileReader();
+    r.onload = e => (document.getElementById('imagePreview').src = e.target.result, document.getElementById('imagePreviewContainer').style.display = 'block');
+    r.readAsDataURL(f);
 }
 
-async function uploadImageToCloudinary() {
-    const file = document.getElementById('productImageFile').files[0];
-    if (!file) return null;
-    
+async function uploadImg() {
+    const f = document.getElementById('productImageFile').files[0];
+    if (!f) return null;
     try {
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        console.log('Uploading image to Cloudinary...');
-        
-        const response = await fetch(`${API_BASE_URL}/upload-image`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` },
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Upload failed');
-        }
-        
-        console.log('✓ Image uploaded successfully:', data.imageUrl);
+        const fd = new FormData();
+        fd.append('image', f);
+        const res = await fetch(`${API}/upload-image`, {method: 'POST', headers: {'Authorization': `Bearer ${localStorage.getItem('access_token')}`}, body: fd});
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
         return data.imageUrl;
-    } catch (error) {
-        console.error('Upload error:', error);
-        throw error;
-    }
+    } catch (err) { throw err; }
 }
 
-// Navigation
-function navigateToSection(section) {
+function nav(s) {
     document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
-    document.querySelector(`[data-section="${section}"]`).classList.add('active');
-    document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
-    document.getElementById(`${section}Section`).style.display = 'block';
-
-    const actions = { dashboard: loadDashboard, products: loadProducts, orders: loadOrders, inventory: loadInventory, analytics: loadAnalytics };
-    actions[section]?.();
+    document.querySelector(`[data-section="${s}"]`).classList.add('active');
+    document.querySelectorAll('.section-content').forEach(c => c.style.display = 'none');
+    document.getElementById(`${s}Section`).style.display = 'block';
+    const actions = {dashboard: loadDashboard, products: loadProducts, orders: loadOrders, reservations: loadReservations, inventory: loadInv, analytics: loadAnalytics};
+    actions[s]?.();
+    closeSidebar();
 }
 
-// Dashboard
-async function initializeDashboard() { await loadDashboard(); }
+async function initDashboard() { await loadDashboard(); }
 
 async function loadDashboard() {
     try {
         await Promise.all([loadProducts(), loadOrders(), loadRevenue('month')]);
-        const orders = await apiCall('/orders?limit=5');
-        displayRecentOrders(orders.orders || []);
-    } catch (error) {
-        showNotification('Error loading dashboard: ' + error.message, 'error');
-    }
+        const o = await api('/orders?limit=5');
+        displayRecent(o.orders || []);
+    } catch (e) { notify('Error loading dashboard: ' + e.message, 'error'); }
 }
 
-// Products
 async function loadProducts() {
     try {
-        const response = await apiCall('/products');
-        const products = response.products || [];
-        document.getElementById('totalProducts').textContent = products.length;
-        displayProducts(products);
-    } catch (error) {
-        showNotification('Error loading products: ' + error.message, 'error');
-    }
+        const res = await api('/products'), prods = res.products || [];
+        document.getElementById('totalProducts').textContent = prods.length;
+        displayProds(prods);
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-function displayProducts(products) {
-    const tbody = document.getElementById('productsTable');
-    if (!products.length) return tbody.innerHTML = '<tr><td colspan="7" class="text-center">No products found</td></tr>';
-
-    tbody.innerHTML = products.map(p => `
-        <tr>
-            <td>${p.imageUrl ? `<img src="${p.imageUrl}" class="product-image-preview" alt="${p.productName}">` : '<i class="bi bi-image" style="font-size: 2rem;"></i>'}</td>
-            <td>${p.productName}</td>
-            <td>${p.category || 'N/A'}</td>
-            <td>₱${parseFloat(p.unitPrice).toFixed(2)}</td>
-            <td>${p.inventory?.quantityInStock || 0}</td>
-            <td><span class="badge ${p.isAvailable ? 'bg-success' : 'bg-danger'}">${p.isAvailable ? 'Available' : 'Unavailable'}</span></td>
-            <td class="table-actions">
-                <button class="btn btn-sm btn-primary" onclick="editProduct(${p.productId})"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.productId})"><i class="bi bi-trash"></i></button>
-            </td>
-        </tr>
-    `).join('');
+function displayProds(prods) {
+    const tb = document.getElementById('productsTable');
+    if (!prods.length) return tb.innerHTML = '<tr><td colspan="7" class="text-center">No products found</td></tr>';
+    tb.innerHTML = prods.map(p => `<tr><td>${p.imageUrl ? `<img src="${p.imageUrl}" class="product-image-preview" alt="${p.productName}">` : '<i class="bi bi-image" style="font-size: 2rem;"></i>'}</td><td>${p.productName}</td><td>${p.category||'N/A'}</td><td>₱${parseFloat(p.unitPrice).toFixed(2)}</td><td>${p.inventory?.quantityInStock||0}</td><td><span class="badge ${p.isAvailable?'bg-success':'bg-danger'}">${p.isAvailable?'Available':'Unavailable'}</span></td><td class="table-actions"><button class="btn btn-sm btn-primary" onclick="editProduct(${p.productId})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.productId})"><i class="bi bi-trash"></i></button></td></tr>`).join('');
 }
 
-async function editProduct(productId) {
+async function editProduct(id) {
     try {
-        const response = await apiCall('/products');
-        const p = response.products.find(prod => prod.productId === productId);
-        if (!p) return showNotification('Product not found', 'error');
-
+        const res = await api('/products'), p = res.products.find(x => x.productId === id);
+        if (!p) return notify('Product not found', 'error');
         document.getElementById('productId').value = p.productId;
         document.getElementById('productName').value = p.productName;
         document.getElementById('productCategory').value = p.category || '';
@@ -159,328 +91,208 @@ async function editProduct(productId) {
         document.getElementById('productImage').value = p.imageUrl || '';
         document.getElementById('productDescription').value = p.description || '';
         document.getElementById('productAvailable').checked = p.isAvailable;
-        
-        // Set uploadedImageUrl when editing
-        if (p.imageUrl) {
-            uploadedImageUrl = p.imageUrl;
-            document.getElementById('imagePreview').src = p.imageUrl;
-            document.getElementById('imagePreviewContainer').style.display = 'block';
-        }
-        
+        if (p.imageUrl) imgUrl = p.imageUrl, document.getElementById('imagePreview').src = p.imageUrl, document.getElementById('imagePreviewContainer').style.display = 'block';
         document.getElementById('productModalTitle').textContent = 'Edit Product';
         new bootstrap.Modal(document.getElementById('productModal')).show();
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
 async function saveProduct() {
-    const productId = document.getElementById('productId').value;
-    const productName = document.getElementById('productName').value.trim();
-    const unitPrice = document.getElementById('productPrice').value;
-    
-    if (!productName) return showNotification('Product name required', 'error');
-    if (!unitPrice || parseFloat(unitPrice) <= 0) return showNotification('Valid price required', 'error');
-    
-    // Show loading state
-    const saveBtn = document.getElementById('saveProductBtn');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-    saveBtn.disabled = true;
-    
+    const id = document.getElementById('productId').value, name = document.getElementById('productName').value.trim(), price = document.getElementById('productPrice').value;
+    if (!name) return notify('Product name required', 'error');
+    if (!price || parseFloat(price) <= 0) return notify('Valid price required', 'error');
+    const btn = document.getElementById('saveProductBtn'), orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+    btn.disabled = true;
     try {
-        let finalImageUrl = null;
-        
-        // Check if there's a new image file to upload
-        const file = document.getElementById('productImageFile').files[0];
-        
-        if (file) {
-            // Upload new image
-            showNotification('Uploading image...', 'info');
-            finalImageUrl = await uploadImageToCloudinary();
-            console.log('New image uploaded:', finalImageUrl);
-        } else if (uploadedImageUrl) {
-            // Use existing uploaded URL (for edits)
-            finalImageUrl = uploadedImageUrl;
-            console.log('Using existing image:', finalImageUrl);
-        } else if (document.getElementById('productImage').value.trim()) {
-            // Use manual URL input
-            finalImageUrl = document.getElementById('productImage').value.trim();
-            console.log('Using manual URL:', finalImageUrl);
-        }
-        
-        console.log('Final imageUrl to save:', finalImageUrl);
-        
-        const data = {
-            productName,
-            description: document.getElementById('productDescription').value.trim() || null,
-            unitPrice: parseFloat(unitPrice),
-            isAvailable: document.getElementById('productAvailable').checked ? 1 : 0,
-            category: document.getElementById('productCategory').value.trim() || null,
-            imageUrl: finalImageUrl
-        };
-        
-        console.log('Product data being sent:', data);
-
-        const response = await apiCall(
-            productId ? `/products/${productId}` : '/products', 
-            productId ? 'PUT' : 'POST', 
-            data
-        );
-        
-        console.log('Save response:', response);
-        
-        showNotification(response.message || 'Product saved successfully', 'success');
+        let finalUrl = null, f = document.getElementById('productImageFile').files[0];
+        if (f) notify('Uploading image...', 'info'), finalUrl = await uploadImg();
+        else if (imgUrl) finalUrl = imgUrl;
+        else if (document.getElementById('productImage').value.trim()) finalUrl = document.getElementById('productImage').value.trim();
+        const data = {productName: name, description: document.getElementById('productDescription').value.trim() || null, unitPrice: parseFloat(price), isAvailable: document.getElementById('productAvailable').checked ? 1 : 0, category: document.getElementById('productCategory').value.trim() || null, imageUrl: finalUrl};
+        const res = await api(id ? `/products/${id}` : '/products', id ? 'PUT' : 'POST', data);
+        notify(res.message || 'Product saved', 'success');
         bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-        
-        // Reset uploadedImageUrl after successful save
-        uploadedImageUrl = null;
-        
+        imgUrl = null;
         await loadProducts();
-    } catch (error) {
-        console.error('Save error:', error);
-        showNotification('Error: ' + error.message, 'error');
-    } finally {
-        // Restore button state
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    }
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
+    finally { btn.innerHTML = orig; btn.disabled = false; }
 }
 
-async function deleteProduct(productId) {
+async function deleteProduct(id) {
     if (!confirm('Delete this product?')) return;
     try {
-        const response = await apiCall(`/products/${productId}`, 'DELETE');
-        showNotification(response.message || 'Product deleted', 'success');
+        const res = await api(`/products/${id}`, 'DELETE');
+        notify(res.message || 'Product deleted', 'success');
         await loadProducts();
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-// Orders
-async function loadOrders(status = '') {
+async function loadOrders(st = '') {
     try {
-        const response = await apiCall(status ? `/orders?status=${status}` : '/orders');
-        const orders = response.orders || [];
-        document.getElementById('totalOrders').textContent = orders.length;
-        document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'Pending').length;
-        displayOrders(orders);
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+        const res = await api(st ? `/orders?status=${st}` : '/orders'), ords = res.orders || [];
+        document.getElementById('totalOrders').textContent = ords.length;
+        document.getElementById('pendingOrders').textContent = ords.filter(o => o.status === 'Pending').length;
+        displayOrds(ords);
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-function displayOrders(orders) {
-    const tbody = document.getElementById('ordersTable');
-    if (!orders.length) return tbody.innerHTML = '<tr><td colspan="7" class="text-center">No orders found</td></tr>';
-
-    tbody.innerHTML = orders.map(o => `
-        <tr>
-            <td>#${o.orderId}</td>
-            <td>${o.customerName || 'Unknown'}</td>
-            <td>${new Date(o.orderDate).toLocaleDateString()}</td>
-            <td>${o.type}</td>
-            <td>₱${parseFloat(o.totalAmount).toFixed(2)}</td>
-            <td><span class="badge badge-status ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
-            <td class="table-actions">
-                <button class="btn btn-sm btn-info" onclick="viewOrderDetails(${o.orderId})"><i class="bi bi-eye"></i></button>
-                <select class="form-select form-select-sm" onchange="updateOrderStatus(${o.orderId}, this.value)" style="width: auto; display: inline-block;">
-                    <option value="">Change Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
-            </td>
-        </tr>
-    `).join('');
+function displayOrds(ords) {
+    const c = document.getElementById('ordersTable');
+    if (!ords.length) return c.innerHTML = '<div class="order-flashcard" style="grid-column: 1 / -1;"><div style="text-align: center; color: #999;">No orders found</div></div>';
+    c.innerHTML = ords.map(o => `<div class="order-flashcard"><div class="order-flashcard-header"><span class="order-id">#${o.orderId}</span><span class="order-status-badge ${badge(o.status)}">${o.status}</span></div><div class="order-flashcard-body"><div class="order-meta-item"><span class="label">Customer</span><span class="value">${o.customerName||'Unknown'}</span></div><div class="order-meta-item"><span class="label">Date</span><span class="value">${o.orderDate?new Date(o.orderDate).toLocaleDateString():''}</span></div><div class="order-meta-item"><span class="label">Type</span><span class="value">${o.type||'N/A'}</span></div><div class="order-amount">₱${parseFloat(o.totalAmount).toFixed(2)}</div></div><div class="order-flashcard-footer"><button class="btn btn-sm btn-info" onclick="viewOrderDetails(${o.orderId})"><i class="bi bi-eye"></i> View</button><select class="form-select form-select-sm" onchange="updateOrderStatus(${o.orderId}, this.value)"><option value="">Change Status</option><option value="Pending">Pending</option><option value="Confirmed">Confirmed</option><option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option></select></div></div>`).join('');
 }
 
-function displayRecentOrders(orders) {
-    const tbody = document.getElementById('recentOrdersTable');
-    if (!orders.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center">No recent orders</td></tr>';
-
-    tbody.innerHTML = orders.slice(0, 5).map(o => `
-        <tr>
-            <td>#${o.orderId}</td>
-            <td>${o.customerName || 'Unknown'}</td>
-            <td>${new Date(o.orderDate).toLocaleDateString()}</td>
-            <td>₱${parseFloat(o.totalAmount).toFixed(2)}</td>
-            <td><span class="badge badge-status ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
-            <td><button class="btn btn-sm btn-info" onclick="viewOrderDetails(${o.orderId})"><i class="bi bi-eye"></i></button></td>
-        </tr>
-    `).join('');
+function displayRecent(ords) {
+    const c = document.getElementById('recentOrdersTable');
+    if (!ords.length) return c.innerHTML = '<div class="order-flashcard" style="grid-column: 1 / -1;"><div style="text-align: center; color: #999;">No recent orders</div></div>';
+    c.innerHTML = ords.slice(0,5).map(o => `<div class="order-flashcard"><div class="order-flashcard-header"><span class="order-id">#${o.orderId}</span><span class="order-status-badge ${badge(o.status)}">${o.status}</span></div><div class="order-flashcard-body"><div class="order-meta-item"><span class="label">Customer</span><span class="value">${o.customerName||'Unknown'}</span></div><div class="order-meta-item"><span class="label">Date</span><span class="value">${o.orderDate?new Date(o.orderDate).toLocaleDateString():''}</span></div><div class="order-amount">₱${parseFloat(o.totalAmount).toFixed(2)}</div></div><div class="order-flashcard-footer"><button class="btn btn-sm btn-info" style="width: 100%;" onclick="viewOrderDetails(${o.orderId})"><i class="bi bi-eye"></i> View Details</button></div></div>`).join('');
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-    if (!newStatus) return;
+async function updateOrderStatus(id, st) {
+    if (!st) return;
     try {
-        const response = await apiCall(`/orders/${orderId}/status`, 'PUT', { status: newStatus });
-        showNotification(response.message || 'Status updated', 'success');
+        const res = await api(`/orders/${id}/status`, 'PUT', {status: st});
+        notify(res.message || 'Status updated', 'success');
         await loadOrders();
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-async function viewOrderDetails(orderId) {
+async function viewOrderDetails(id) {
     try {
-        const response = await apiCall('/orders');
-        const o = response.orders.find(ord => ord.orderId === orderId);
-        if (!o) return showNotification('Order not found', 'error');
-
-        document.getElementById('orderDetailsContent').innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <h6>Order Information</h6>
-                    <p><strong>Order ID:</strong> #${o.orderId}</p>
-                    <p><strong>Customer:</strong> ${o.customerName || 'Unknown'}</p>
-                    <p><strong>Date:</strong> ${new Date(o.orderDate).toLocaleString()}</p>
-                    <p><strong>Type:</strong> ${o.type}</p>
-                    <p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(o.status)}">${o.status}</span></p>
-                </div>
-                <div class="col-md-6">
-                    <h6>Delivery Information</h6>
-                    <p><strong>Address:</strong> ${o.deliveryAddress || 'N/A'}</p>
-                    <p><strong>Notes:</strong> ${o.notes || 'None'}</p>
-                </div>
-                <div class="col-md-12 mt-3">
-                    <h6>Order Items</h6>
-                    <table class="table table-sm">
-                        <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Subtotal</th></tr></thead>
-                        <tbody>${o.items ? o.items.map(i => `<tr><td>${i.productName}</td><td>${i.quantity}</td><td>₱${parseFloat(i.unitPrice).toFixed(2)}</td><td>₱${parseFloat(i.subtotal).toFixed(2)}</td></tr>`).join('') : '<tr><td colspan="4">No items</td></tr>'}</tbody>
-                        <tfoot><tr><th colspan="3">Total</th><th>₱${parseFloat(o.totalAmount).toFixed(2)}</th></tr></tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
+        const res = await api('/orders'), o = res.orders.find(x => x.orderId === id);
+        if (!o) return notify('Order not found', 'error');
+        document.getElementById('orderDetailsContent').innerHTML = `<div class="row"><div class="col-md-6"><h6>Order Information</h6><p><strong>Order ID:</strong> #${o.orderId}</p><p><strong>Customer:</strong> ${o.customerName||'Unknown'}</p><p><strong>Date:</strong> ${new Date(o.orderDate).toLocaleString()}</p><p><strong>Type:</strong> ${o.type}</p><p><strong>Status:</strong> <span class="badge ${badge(o.status)}">${o.status}</span></p></div><div class="col-md-6"><h6>Delivery Information</h6><p><strong>Address:</strong> ${o.deliveryAddress||'N/A'}</p><p><strong>Notes:</strong> ${o.notes||'None'}</p></div><div class="col-md-12 mt-3"><h6>Order Items</h6><table class="table table-sm"><thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Subtotal</th></tr></thead><tbody>${o.items?o.items.map(i=>`<tr><td>${i.productName}</td><td>${i.quantity}</td><td>₱${parseFloat(i.unitPrice).toFixed(2)}</td><td>₱${parseFloat(i.subtotal).toFixed(2)}</td></tr>`).join(''):'<tr><td colspan="4">No items</td></tr>'}</tbody><tfoot><tr><th colspan="3">Total</th><th>₱${parseFloat(o.totalAmount).toFixed(2)}</th></tr></tfoot></table></div></div>`;
         new bootstrap.Modal(document.getElementById('orderModal')).show();
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-// Inventory
-async function loadInventory() {
+async function loadInv() {
+    const tb = document.getElementById('inventoryTable');
+    tb.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Loading inventory...</td></tr>';
+    
     try {
-        const response = await apiCall('/products');
-        displayInventory(response.products || []);
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
+        const res = await api('/products');
+        console.log('Inventory API Response:', res);
+        
+        if (!res || !res.products) {
+            throw new Error('Invalid response from server');
+        }
+        
+        displayInv(res.products);
+    } catch (e) {
+        console.error('Inventory Load Error:', e);
+        tb.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error loading inventory: ${e.message}</td></tr>`;
+        notify('Error loading inventory: ' + e.message, 'error');
     }
 }
 
-function displayInventory(products) {
-    const tbody = document.getElementById('inventoryTable');
-    if (!products.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center">No inventory records</td></tr>';
-
-    tbody.innerHTML = products.map(p => {
+function displayInv(prods) {
+    const tb = document.getElementById('inventoryTable');
+    
+    if (!prods || prods.length === 0) {
+        tb.innerHTML = '<tr><td colspan="6" class="text-center">No inventory records found</td></tr>';
+        return;
+    }
+    
+    tb.innerHTML = prods.map(p => {
         const inv = p.inventory || {};
-        const needsReorder = inv.quantityInStock <= (inv.reorderLevel || 10);
-        return `
-            <tr>
-                <td>${p.productName}</td>
-                <td>${inv.quantityInStock || 0}</td>
-                <td>${inv.reorderLevel || 10}</td>
-                <td>${inv.lastRestocked ? new Date(inv.lastRestocked).toLocaleDateString() : 'N/A'}</td>
-                <td><span class="badge ${needsReorder ? 'bg-warning' : 'bg-success'}">${needsReorder ? 'Low Stock' : 'In Stock'}</span></td>
-                <td class="table-actions"><button class="btn btn-sm btn-primary" onclick="openStockModal(${p.productId}, '${p.productName}', ${inv.quantityInStock || 0})"><i class="bi bi-plus-circle"></i> Update Stock</button></td>
-            </tr>
-        `;
+        const stock = inv.quantityInStock !== undefined ? inv.quantityInStock : 0;
+        const reorder = inv.reorderLevel !== undefined ? inv.reorderLevel : 10;
+        const low = stock <= reorder;
+        const lastRestock = inv.lastRestocked ? new Date(inv.lastRestocked).toLocaleDateString() : 'Never';
+        
+        return `<tr>
+            <td>${p.productName || 'Unnamed Product'}</td>
+            <td>${stock}</td>
+            <td>${reorder}</td>
+            <td>${lastRestock}</td>
+            <td><span class="badge ${low ? 'bg-warning' : 'bg-success'}">${low ? 'Low Stock' : 'In Stock'}</span></td>
+            <td class="table-actions">
+                <button class="btn btn-sm btn-primary" onclick="openStockModal(${p.productId}, '${(p.productName || '').replace(/'/g, "\\'")}', ${stock})">
+                    <i class="bi bi-plus-circle"></i> Update Stock
+                </button>
+            </td>
+        </tr>`;
     }).join('');
 }
 
-function openStockModal(productId, productName, currentStock) {
-    document.getElementById('stockProductId').value = productId;
-    document.getElementById('stockProductName').value = productName;
-    document.getElementById('currentStock').value = currentStock;
+function openStockModal(id, name, stock) {
+    document.getElementById('stockProductId').value = id;
+    document.getElementById('stockProductName').value = name;
+    document.getElementById('currentStock').value = stock;
     document.getElementById('quantityChange').value = '';
     document.getElementById('stockNotes').value = '';
     new bootstrap.Modal(document.getElementById('stockModal')).show();
 }
 
 async function updateStock() {
+    const btn = document.getElementById('updateStockBtn');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Updating...';
+    btn.disabled = true;
+    
     try {
-        const productId = document.getElementById('stockProductId').value;
+        const id = document.getElementById('stockProductId').value;
+        const change = parseInt(document.getElementById('quantityChange').value);
+        
+        if (isNaN(change) || change === 0) {
+            throw new Error('Please enter a valid quantity change');
+        }
+        
         const data = {
-            quantity_change: parseInt(document.getElementById('quantityChange').value),
+            quantity_change: change,
             reason: document.getElementById('stockReason').value,
-            notes: document.getElementById('stockNotes').value
+            notes: document.getElementById('stockNotes').value.trim() || null
         };
-        const response = await apiCall(`/inventory/${productId}`, 'POST', data);
-        showNotification(response.message || 'Stock updated', 'success');
+        
+        console.log('Updating stock:', data);
+        const res = await api(`/inventory/${id}`, 'POST', data);
+        
+        notify(res.message || 'Stock updated successfully', 'success');
         bootstrap.Modal.getInstance(document.getElementById('stockModal')).hide();
-        await loadInventory();
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
+        await loadInv();
+    } catch (e) {
+        console.error('Stock Update Error:', e);
+        notify('Error updating stock: ' + e.message, 'error');
+    } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
     }
 }
 
-// Analytics
 async function loadAnalytics() {
+    try { await Promise.all([loadRevenue('month'), loadTop()]); }
+    catch (e) { notify('Error: ' + e.message, 'error'); }
+}
+
+async function loadRevenue(per = 'month') {
     try {
-        await Promise.all([loadRevenue('month'), loadTopProducts()]);
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+        const res = await api(`/revenue?period=${per}`);
+        if (per === 'month') document.getElementById('monthlyRevenue').textContent = `₱${parseFloat(res.total_revenue||0).toFixed(2)}`;
+        updateChart(res.revenue_by_day || []);
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-async function loadRevenue(period = 'month') {
+function updateChart(data) {
+    if (chart) chart.destroy();
+    chart = new Chart(document.getElementById('revenueChart'), {type: 'line', data: {labels: data.map(d => new Date(d.date).toLocaleDateString()), datasets: [{label: 'Revenue', data: data.map(d => d.revenue), borderColor: 'rgb(52, 152, 219)', backgroundColor: 'rgba(52, 152, 219, 0.1)', tension: 0.4, fill: true}]}, options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: true, position: 'top'}}, scales: {y: {beginAtZero: true, ticks: {callback: v => '₱' + v.toFixed(2)}}}}});
+}
+
+async function loadTop() {
     try {
-        const response = await apiCall(`/revenue?period=${period}`);
-        if (period === 'month') {
-            document.getElementById('monthlyRevenue').textContent = `₱${parseFloat(response.total_revenue || 0).toFixed(2)}`;
-        }
-        updateRevenueChart(response.revenue_by_day || []);
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
+        const res = await api('/analytics'), tb = document.getElementById('topProductsTable'), prods = res.top_products || [];
+        if (!prods.length) return tb.innerHTML = '<tr><td colspan="3" class="text-center">No sales data</td></tr>';
+        tb.innerHTML = prods.map(p => `<tr><td>${p.name}</td><td>${p.total_sold}</td><td>₱${parseFloat(p.total_revenue).toFixed(2)}</td></tr>`).join('');
+    } catch (e) { notify('Error: ' + e.message, 'error'); }
 }
 
-function updateRevenueChart(data) {
-    if (revenueChart) revenueChart.destroy();
-    revenueChart = new Chart(document.getElementById('revenueChart'), {
-        type: 'line',
-        data: {
-            labels: data.map(d => new Date(d.date).toLocaleDateString()),
-            datasets: [{
-                label: 'Revenue',
-                data: data.map(d => d.revenue),
-                borderColor: 'rgb(52, 152, 219)',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: true, position: 'top' } },
-            scales: { y: { beginAtZero: true, ticks: { callback: v => '₱' + v.toFixed(2) } } }
-        }
-    });
-}
-
-async function loadTopProducts() {
-    try {
-        const response = await apiCall('/analytics');
-        const tbody = document.getElementById('topProductsTable');
-        const products = response.top_products || [];
-        if (!products.length) return tbody.innerHTML = '<tr><td colspan="3" class="text-center">No sales data</td></tr>';
-        tbody.innerHTML = products.map(p => `<tr><td>${p.name}</td><td>${p.total_sold}</td><td>₱${parseFloat(p.total_revenue).toFixed(2)}</td></tr>`).join('');
-    } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-    }
-}
-
-// Helpers
-function resetProductForm() {
+function resetForm() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productImageFile').value = '';
     document.getElementById('imagePreviewContainer').style.display = 'none';
-    uploadedImageUrl = null;
+    imgUrl = null;
     document.getElementById('productImage').value = '';
     document.getElementById('productModalTitle').textContent = 'Add Product';
 }
@@ -490,70 +302,58 @@ function logout() {
     window.location.href = '../auth/login.html';
 }
 
-function getStatusBadgeClass(status) {
-    const classes = {
-        'Pending': 'bg-warning', 'Confirmed': 'bg-info', 'Delivered': 'bg-success', 'Cancelled': 'bg-danger',
-        'pending': 'bg-warning', 'confirmed': 'bg-info', 'preparing': 'bg-primary', 'ready': 'bg-info', 
-        'completed': 'bg-success', 'cancelled': 'bg-danger'
-    };
-    return classes[status] || 'bg-secondary';
+function badge(st) {
+    const c = {Pending: 'bg-warning', Confirmed: 'bg-info', Delivered: 'bg-success', Cancelled: 'bg-danger', pending: 'bg-warning', confirmed: 'bg-info', preparing: 'bg-primary', ready: 'bg-info', completed: 'bg-success', cancelled: 'bg-danger'};
+    return c[st] || 'bg-secondary';
 }
 
-async function apiCall(endpoint, method = 'GET', data = null) {
+async function api(ep, method = 'GET', data = null) {
     const token = localStorage.getItem('access_token');
-    if (!token) {
-        showNotification('Session expired. Please login again.', 'error');
-        setTimeout(logout, 2000);
-        throw new Error('No authentication token');
-    }
-
-    const options = {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-    };
-    if (data && method !== 'GET') options.body = JSON.stringify(data);
-
+    if (!token) return notify('Session expired. Please login again.', 'error'), setTimeout(logout, 2000), Promise.reject(new Error('No token'));
+    const opt = {method, headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}};
+    if (data && method !== 'GET') opt.body = JSON.stringify(data);
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        
-        if (!response.ok) {
-            let errorData;
-            try { errorData = await response.json(); } catch { errorData = { message: response.statusText }; }
-            if (response.status === 401 || response.status === 422) {
-                showNotification('Session expired. Please login again.', 'error');
-                setTimeout(logout, 2000);
-                throw new Error('Authentication failed');
-            }
-            throw new Error(errorData.msg || errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+        const res = await fetch(`${API}${ep}`, opt);
+        if (!res.ok) {
+            let err;
+            try { err = await res.json(); } catch { err = {message: res.statusText}; }
+            if (res.status === 401 || res.status === 422) return notify('Session expired. Please login again.', 'error'), setTimeout(logout, 2000), Promise.reject(new Error('Auth failed'));
+            throw new Error(err.msg || err.error || err.message || `HTTP error! status: ${res.status}`);
         }
-        return await response.json();
-    } catch (error) {
-        throw error;
-    }
+        return await res.json();
+    } catch (e) { throw e; }
 }
 
-function showNotification(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-
-    let container = document.querySelector('.toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container position-fixed top-0 end-0 p-3';
-        document.body.appendChild(container);
-    }
-
-    container.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+function notify(msg, type = 'info') {
+    const t = document.createElement('div');
+    t.className = `toast align-items-center text-white bg-${type==='error'?'danger':type==='success'?'success':'info'} border-0`;
+    t.setAttribute('role', 'alert');
+    t.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    let c = document.querySelector('.toast-container');
+    if (!c) c = document.createElement('div'), c.className = 'toast-container position-fixed top-0 end-0 p-3', document.body.appendChild(c);
+    c.appendChild(t);
+    const bt = new bootstrap.Toast(t);
+    bt.show();
+    t.addEventListener('hidden.bs.toast', () => t.remove());
 }
 
-// Global exports
 window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
 window.openStockModal = openStockModal;
 window.updateOrderStatus = updateOrderStatus;
 window.viewOrderDetails = viewOrderDetails;
+
+function toggleSidebar() {
+    const s = document.querySelector('.sidebar'), o = document.getElementById('menuOverlay');
+    s.classList.toggle('active');
+    o.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const s = document.querySelector('.sidebar'), o = document.getElementById('menuOverlay');
+    s.classList.remove('active');
+    o.classList.remove('active');
+}
+
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
