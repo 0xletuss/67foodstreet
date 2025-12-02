@@ -30,7 +30,6 @@ function setupEventListeners() {
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
     document.getElementById('productImageFile').addEventListener('change', handleImageSelect);
-    document.getElementById('uploadImageBtn').addEventListener('click', uploadImage);
     document.getElementById('updateStockBtn').addEventListener('click', updateStock);
     document.getElementById('orderStatusFilter').addEventListener('change', e => loadOrders(e.target.value));
     document.getElementById('revenuePeriod').addEventListener('change', e => loadRevenue(e.target.value));
@@ -59,17 +58,11 @@ function handleImageSelect(e) {
         document.getElementById('imagePreviewContainer').style.display = 'block';
     };
     reader.readAsDataURL(file);
-    document.getElementById('uploadImageBtn').style.display = 'inline-block';
 }
 
-async function uploadImage() {
+async function uploadImageToCloudinary() {
     const file = document.getElementById('productImageFile').files[0];
-    if (!file) return showNotification('Select an image first', 'error');
-    
-    const uploadBtn = document.getElementById('uploadImageBtn');
-    const originalText = uploadBtn.innerHTML;
-    uploadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading...';
-    uploadBtn.disabled = true;
+    if (!file) return null;
     
     try {
         const formData = new FormData();
@@ -84,26 +77,16 @@ async function uploadImage() {
         });
         
         const data = await response.json();
-        console.log('Upload response:', data);
         
         if (!response.ok) {
             throw new Error(data.error || 'Upload failed');
         }
         
-        // CRITICAL FIX: Save the imageUrl to our variable AND the input field
-        uploadedImageUrl = data.imageUrl;
-        document.getElementById('productImage').value = data.imageUrl;
-        
-        console.log('Image URL saved:', uploadedImageUrl);
-        
-        showNotification('Image uploaded successfully!', 'success');
-        uploadBtn.style.display = 'none';
-        document.getElementById('uploadSuccess').style.display = 'inline-block';
+        console.log('✓ Image uploaded successfully:', data.imageUrl);
+        return data.imageUrl;
     } catch (error) {
         console.error('Upload error:', error);
-        showNotification('Error: ' + error.message, 'error');
-        uploadBtn.innerHTML = originalText;
-        uploadBtn.disabled = false;
+        throw error;
     }
 }
 
@@ -177,7 +160,7 @@ async function editProduct(productId) {
         document.getElementById('productDescription').value = p.description || '';
         document.getElementById('productAvailable').checked = p.isAvailable;
         
-        // CRITICAL FIX: Set uploadedImageUrl when editing
+        // Set uploadedImageUrl when editing
         if (p.imageUrl) {
             uploadedImageUrl = p.imageUrl;
             document.getElementById('imagePreview').src = p.imageUrl;
@@ -199,23 +182,46 @@ async function saveProduct() {
     if (!productName) return showNotification('Product name required', 'error');
     if (!unitPrice || parseFloat(unitPrice) <= 0) return showNotification('Valid price required', 'error');
     
-    // CRITICAL FIX: Properly get imageUrl - prioritize uploadedImageUrl
-    let finalImageUrl = uploadedImageUrl || document.getElementById('productImage').value.trim() || null;
+    // Show loading state
+    const saveBtn = document.getElementById('saveProductBtn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+    saveBtn.disabled = true;
     
-    console.log('Saving product with imageUrl:', finalImageUrl);
-    
-    const data = {
-        productName,
-        description: document.getElementById('productDescription').value.trim() || null,
-        unitPrice: parseFloat(unitPrice),
-        isAvailable: document.getElementById('productAvailable').checked ? 1 : 0,
-        category: document.getElementById('productCategory').value.trim() || null,
-        imageUrl: finalImageUrl
-    };
-    
-    console.log('Product data being sent:', data);
-
     try {
+        let finalImageUrl = null;
+        
+        // Check if there's a new image file to upload
+        const file = document.getElementById('productImageFile').files[0];
+        
+        if (file) {
+            // Upload new image
+            showNotification('Uploading image...', 'info');
+            finalImageUrl = await uploadImageToCloudinary();
+            console.log('New image uploaded:', finalImageUrl);
+        } else if (uploadedImageUrl) {
+            // Use existing uploaded URL (for edits)
+            finalImageUrl = uploadedImageUrl;
+            console.log('Using existing image:', finalImageUrl);
+        } else if (document.getElementById('productImage').value.trim()) {
+            // Use manual URL input
+            finalImageUrl = document.getElementById('productImage').value.trim();
+            console.log('Using manual URL:', finalImageUrl);
+        }
+        
+        console.log('Final imageUrl to save:', finalImageUrl);
+        
+        const data = {
+            productName,
+            description: document.getElementById('productDescription').value.trim() || null,
+            unitPrice: parseFloat(unitPrice),
+            isAvailable: document.getElementById('productAvailable').checked ? 1 : 0,
+            category: document.getElementById('productCategory').value.trim() || null,
+            imageUrl: finalImageUrl
+        };
+        
+        console.log('Product data being sent:', data);
+
         const response = await apiCall(
             productId ? `/products/${productId}` : '/products', 
             productId ? 'PUT' : 'POST', 
@@ -234,6 +240,10 @@ async function saveProduct() {
     } catch (error) {
         console.error('Save error:', error);
         showNotification('Error: ' + error.message, 'error');
+    } finally {
+        // Restore button state
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
     }
 }
 
@@ -470,9 +480,8 @@ function resetProductForm() {
     document.getElementById('productId').value = '';
     document.getElementById('productImageFile').value = '';
     document.getElementById('imagePreviewContainer').style.display = 'none';
-    document.getElementById('uploadImageBtn').style.display = 'none';
-    document.getElementById('uploadSuccess').style.display = 'none';
     uploadedImageUrl = null;
+    document.getElementById('productImage').value = '';
     document.getElementById('productModalTitle').textContent = 'Add Product';
 }
 
@@ -506,6 +515,7 @@ async function apiCall(endpoint, method = 'GET', data = null) {
 
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        
         if (!response.ok) {
             let errorData;
             try { errorData = await response.json(); } catch { errorData = { message: response.statusText }; }
