@@ -549,6 +549,9 @@ document.getElementById('profileForm').addEventListener('submit', async function
 
 // Navigation
 function showSection(sectionId) {
+    // Close sidebar on mobile
+    closeSidebar();
+
     // Update sidebar
     document.querySelectorAll('.sidebar-nav a').forEach(link => {
         link.classList.remove('active');
@@ -571,6 +574,23 @@ function showSection(sectionId) {
             loadProducts();
         }
     }
+}
+
+// Hamburger Menu Functions
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('menuOverlay');
+    
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('menuOverlay');
+    
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
 }
 
 // View Product Details

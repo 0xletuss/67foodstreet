@@ -39,18 +39,24 @@
             justify-content: space-between;
             align-items: center;
             padding: 1rem 0;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .logo {
             font-size: 1.875rem;
             font-weight: bold;
             color: #f97316;
+            flex-shrink: 0;
         }
 
         .header-right {
             display: flex;
             align-items: center;
             gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            flex: 1;
         }
 
         .header-info {
@@ -58,6 +64,7 @@
             align-items: center;
             gap: 1rem;
             color: #4b5563;
+            font-size: 0.95rem;
         }
 
         .btn {
@@ -211,6 +218,7 @@
             align-items: center;
             gap: 0.5rem;
             color: #6b7280;
+            white-space: nowrap;
         }
 
         .meta-value {
@@ -268,6 +276,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .quantity-btn {
@@ -280,6 +289,7 @@
             transition: all 0.3s;
             font-weight: 600;
             color: #374151;
+            flex-shrink: 0;
         }
 
         .quantity-btn:hover {
@@ -296,21 +306,25 @@
             border-radius: 0.5rem;
             font-weight: 700;
             font-size: 1.125rem;
+            flex-shrink: 0;
         }
 
         .quantity-available {
             color: #6b7280;
             font-size: 0.9rem;
+            white-space: nowrap;
         }
 
         .action-buttons {
             display: flex;
             gap: 1rem;
             margin-top: 1.5rem;
+            flex-wrap: wrap;
         }
 
         .btn-add-cart {
             flex: 1;
+            min-width: 140px;
             padding: 1rem;
             font-size: 1rem;
             font-weight: 700;
@@ -329,6 +343,7 @@
 
         .btn-buy-now {
             flex: 1;
+            min-width: 140px;
             padding: 1rem;
             font-size: 1rem;
             font-weight: 700;
@@ -363,6 +378,7 @@
             align-items: center;
             gap: 1rem;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
         .seller-avatar {
@@ -376,16 +392,19 @@
             justify-content: center;
             font-weight: 800;
             font-size: 1.5rem;
+            flex-shrink: 0;
         }
 
         .seller-info {
             flex: 1;
+            min-width: 150px;
         }
 
         .seller-name {
             font-weight: 700;
             color: #111827;
             font-size: 1.1rem;
+            word-break: break-word;
         }
 
         .seller-badge {
@@ -550,6 +569,247 @@
 
             .related-grid {
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+
+            .product-container {
+                gap: 1.5rem;
+            }
+
+            .main-image {
+                height: 300px;
+            }
+
+            .product-header,
+            .seller-section,
+            .description-section {
+                padding: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-add-cart,
+            .btn-buy-now {
+                width: 100%;
+            }
+
+            .quantity-controls {
+                flex-wrap: wrap;
+            }
+
+            .quantity-available {
+                flex-basis: 100%;
+                margin-top: 0.5rem;
+            }
+
+            .seller-header {
+                flex-wrap: wrap;
+            }
+
+            .seller-action {
+                margin-left: 0;
+                margin-top: 1rem;
+                width: 100%;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            .product-meta {
+                gap: 1rem;
+            }
+
+            .meta-item {
+                font-size: 0.9rem;
+            }
+
+            .product-description {
+                font-size: 0.95rem;
+            }
+
+            .header-info {
+                display: none;
+            }
+
+            .header-content {
+                padding: 0.75rem 0;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .header-right {
+                gap: 0.75rem;
+            }
+
+            .btn {
+                padding: 0.4rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .breadcrumb {
+                font-size: 0.75rem;
+                gap: 0.25rem;
+                margin: 1rem 0;
+            }
+
+            .back-link {
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+            }
+
+            .container {
+                padding: 0 0.75rem;
+            }
+
+            .quantity-input {
+                width: 60px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .quantity-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .quantity-section {
+                padding: 1rem 0;
+                margin: 1rem 0;
+            }
+
+            .product-meta {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .related-grid {
+                gap: 1rem;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .related-card {
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            }
+
+            .related-image {
+                height: 150px;
+            }
+
+            .related-info {
+                padding: 1rem;
+            }
+
+            .related-name {
+                font-size: 1rem;
+            }
+
+            .related-price {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-name {
+                font-size: 1.25rem;
+                line-height: 1.2;
+            }
+
+            .product-price {
+                font-size: 1.75rem;
+            }
+
+            .main-image {
+                height: 250px;
+                margin-bottom: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+            }
+
+            .product-header,
+            .seller-section,
+            .description-section {
+                padding: 1rem;
+            }
+
+            .related-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .action-buttons {
+                gap: 0.75rem;
+            }
+
+            .quantity-controls {
+                gap: 0.5rem;
+            }
+
+            .quantity-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+
+            .quantity-input {
+                width: 55px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+
+            .quantity-label {
+                font-size: 0.9rem;
+            }
+
+            .quantity-available {
+                font-size: 0.8rem;
+            }
+
+            .meta-item {
+                font-size: 0.8rem;
+            }
+
+            .product-description {
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+
+            .seller-name {
+                font-size: 1rem;
+            }
+
+            .seller-badge {
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+
+            .cart-badge {
+                width: 20px;
+                height: 20px;
+                font-size: 0.6rem;
+            }
+
+            .related-name {
+                font-size: 0.95rem;
+                line-height: 1.3;
+            }
+
+            .related-price {
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .product-container {
+                gap: 1rem;
             }
         }
     </style>

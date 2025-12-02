@@ -39,6 +39,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 1rem 0;
+            gap: 1rem;
         }
 
         .logo {
@@ -113,6 +114,31 @@
             font-weight: 700;
         }
 
+        /* Hamburger Menu */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #374151;
+        }
+
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
         /* Main Layout */
         .dashboard-container {
             display: grid;
@@ -125,6 +151,27 @@
         @media (max-width: 768px) {
             .dashboard-container {
                 grid-template-columns: 1fr;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 80px;
+                width: 250px;
+                height: calc(100vh - 80px);
+                border-radius: 0;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+                z-index: 100;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+            }
+
+            .sidebar.active {
+                left: 0;
             }
         }
 
@@ -349,8 +396,150 @@
         }
 
         @media (max-width: 768px) {
+            .dashboard-container {
+                gap: 1rem;
+                padding: 1rem 0;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 80px;
+                width: 250px;
+                height: calc(100vh - 80px);
+                border-radius: 0;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+                z-index: 100;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .header-info {
+                display: none;
+            }
+
+            .header-right {
+                gap: 0.75rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 0.4rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 1rem;
+            }
+
             .cart-container {
                 grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-summary {
+                position: static;
+                top: auto;
+            }
+
+            .cart-item {
+                grid-template-columns: 80px 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .cart-item-image {
+                width: 80px;
+                height: 80px;
+            }
+
+            .related-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                gap: 0.5rem;
+                padding: 0.5rem 0;
+            }
+
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.25rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .btn {
+                padding: 0.35rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .cart-item {
+                grid-template-columns: 70px 1fr;
+                gap: 0.75rem;
+                padding: 0.75rem;
+            }
+
+            .cart-item-image {
+                width: 70px;
+                height: 70px;
+            }
+
+            .cart-item-name {
+                font-size: 1rem;
+            }
+
+            .product-name {
+                font-size: 1.1rem;
+            }
+
+            .product-price {
+                font-size: 1.5rem;
+            }
+
+            .section-header {
+                margin-bottom: 1rem;
+            }
+
+            .search-filter-bar {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .filter-row {
+                gap: 0.75rem;
             }
         }
 
@@ -571,27 +760,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        @media (max-width: 768px) {
-            .dashboard-container {
-                gap: 1rem;
-                padding: 1rem 0;
-            }
-
-            .sidebar {
-                position: static;
-                top: auto;
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            }
-        }
     </style>
 </head>
 <body>
@@ -599,6 +767,9 @@
     <header>
         <div class="container">
             <div class="header-content">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1 class="logo">67StreetFood</h1>
                 <div class="header-right">
                     <div class="header-info">
@@ -616,9 +787,12 @@
 
     <!-- Main Content -->
     <div class="container">
+        <!-- Mobile Menu Overlay -->
+        <div class="menu-overlay" id="menuOverlay" onclick="closeSidebar()"></div>
+
         <div class="dashboard-container">
             <!-- Sidebar -->
-            <aside class="sidebar">
+            <aside class="sidebar" id="sidebar">
                 <h3>Menu</h3>
                 <nav class="sidebar-nav">
                     <a href="#" onclick="showSection('products')" class="active">
