@@ -656,7 +656,7 @@ async function submitReservation() {
         console.log('Submitting order:', orderPayload);
         
         // Create order first
-        const orderResponse = await fetch(`${API_BASE_URL}/order/create`, {
+        const orderResponse = await fetch(`${API_BASE_URL}/orders/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -684,7 +684,7 @@ async function submitReservation() {
         
         console.log('Creating reservation record:', reservationPayload);
         
-        const reservationResponse = await fetch(`${API_BASE_URL}/order/reservations/create`, {
+        const reservationResponse = await fetch(`${API_BASE_URL}/orders/reservations/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -708,7 +708,7 @@ async function submitReservation() {
                 paymentMethod: reservationData.paymentMethod
             };
             
-            const paymentResponse = await fetch(`${API_BASE_URL}/order/${orderId}/payment`, {
+            const paymentResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
