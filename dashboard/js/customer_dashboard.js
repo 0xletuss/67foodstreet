@@ -146,7 +146,7 @@ function displayProducts(products) {
     
     container.innerHTML = products.map(product => `
         <div class="col-md-3 col-sm-6">
-            <div class="card product-card">
+            <div class="card product-card" style="cursor: pointer;" onclick="viewProduct(${product.productId})">
                 <div class="position-relative">
                     <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
                          class="product-image" 
@@ -169,7 +169,7 @@ function displayProducts(products) {
                     ${product.category ? `<span class="badge bg-secondary mb-2">${product.category}</span>` : ''}
                     ${product.sellerName ? `<p class="small text-muted mb-2"><i class="fas fa-store me-1"></i>${product.sellerName}</p>` : ''}
                     <button class="btn btn-primary w-100" 
-                            onclick="addToCart(${product.productId})"
+                            onclick="event.stopPropagation(); addToCart(${product.productId})"
                             ${!product.isAvailable || product.stock <= 0 ? 'disabled' : ''}>
                         <i class="fas fa-cart-plus me-1"></i>Add to Cart
                     </button>
@@ -557,6 +557,11 @@ function showSection(sectionId) {
             loadProducts();
         }
     }
+}
+
+// View Product Details
+function viewProduct(productId) {
+    window.location.href = `view_product.html?id=${productId}`;
 }
 
 // Logout
