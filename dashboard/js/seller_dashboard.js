@@ -125,6 +125,8 @@ async function uploadImage() {
     }
     
     try {
+        console.log('Starting image upload...', file.name);
+        
         // Show loading state
         const uploadBtn = document.getElementById('uploadImageBtn');
         const originalText = uploadBtn.innerHTML;
@@ -134,6 +136,8 @@ async function uploadImage() {
         // Create form data
         const formData = new FormData();
         formData.append('image', file);
+        
+        console.log('Uploading to:', `${API_BASE_URL}/upload-image`);
         
         // Upload to backend
         const token = localStorage.getItem('access_token');
@@ -145,16 +149,23 @@ async function uploadImage() {
             body: formData
         });
         
+        console.log('Upload response status:', response.status);
+        
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Upload error:', errorData);
             throw new Error(errorData.error || 'Upload failed');
         }
         
         const data = await response.json();
+        console.log('Upload response data:', data);
+        
         uploadedImageUrl = data.imageUrl;
+        console.log('Image URL stored:', uploadedImageUrl);
         
         // Update hidden input with URL
         document.getElementById('productImage').value = uploadedImageUrl;
+        console.log('Hidden input updated with:', document.getElementById('productImage').value);
         
         // Show success
         showNotification('Image uploaded successfully!', 'success');
@@ -572,16 +583,20 @@ async function saveProduct() {
             return;
         }
         
+        // Get the image URL - prioritize uploadedImageUrl (from upload), then hidden input
+        const imageUrl = uploadedImageUrl || document.getElementById('productImage').value.trim();
+        
         const data = {
             productName: productName,
             description: document.getElementById('productDescription').value.trim() || null,
             unitPrice: parseFloat(unitPrice),
             isAvailable: document.getElementById('productAvailable').checked ? 1 : 0,
             category: document.getElementById('productCategory').value.trim() || null,
-            imageUrl: uploadedImageUrl || document.getElementById('productImage').value.trim() || null
+            imageUrl: imageUrl || null
         };
 
         console.log('Saving product with data:', data);
+        console.log('Image URL being saved:', imageUrl);
 
         let response;
         if (productId) {
@@ -594,6 +609,9 @@ async function saveProduct() {
         
         const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
         modal.hide();
+        
+        // Reset the uploadedImageUrl after saving
+        uploadedImageUrl = null;
         
         await loadProducts();
     } catch (error) {
