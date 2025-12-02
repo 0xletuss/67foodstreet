@@ -2,18 +2,17 @@ const API_BASE_URL = 'https://six7backend.onrender.com/api';
 let authToken = null;
 let currentCustomer = null;
 let allProducts = [];
-let cart = [];
+let cart = { items: [], subtotal: 0, totalItems: 0 };
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    authToken = localStorage.getItem('access_token'); // Changed from 'authToken' to match auth.js
+    authToken = localStorage.getItem('access_token');
     
     if (!authToken) {
         window.location.href = '../auth/login.html';
         return;
     }
     
-    // Check if user is a customer
     const userType = localStorage.getItem('user_type');
     if (userType !== 'customer') {
         alert('Access denied. Customers only.');
@@ -21,9 +20,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    loadCart();
     loadCustomerProfile();
     loadProducts();
+    loadCart(); // Load from backend
 });
 
 // API Helper Function
@@ -42,17 +41,17 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        const data = await response.json();
         
         if (!response.ok) {
             if (response.status === 401) {
                 logout();
                 return null;
             }
-            throw new Error(data.error || 'API request failed');
+            const data = await response.json();
+            throw new Error(data.detail || 'API request failed');
         }
         
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('API Error:', error);
         showToast('Error: ' + error.message, 'danger');
@@ -67,7 +66,6 @@ async function loadCustomerProfile() {
         currentCustomer = data.profile;
         document.getElementById('customerName').textContent = `Welcome, ${currentCustomer.customerName}!`;
         
-        // Populate profile form
         document.getElementById('profileCustomerName').value = currentCustomer.customerName || '';
         document.getElementById('phoneNumber').value = currentCustomer.phoneNumber || '';
         document.getElementById('profileEmail').value = currentCustomer.email || '';
@@ -92,17 +90,12 @@ async function loadProducts() {
     try {
         const response = await fetch(`${API_BASE_URL}/products/`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        console.log('Products loaded:', data);
         
         if (data && data.products) {
             allProducts = data.products;
@@ -194,7 +187,6 @@ function populateCategories() {
 function applyFilters() {
     let filtered = [...allProducts];
     
-    // Search filter
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     if (searchTerm) {
         filtered = filtered.filter(p => 
@@ -203,13 +195,11 @@ function applyFilters() {
         );
     }
     
-    // Category filter
     const category = document.getElementById('categoryFilter').value;
     if (category) {
         filtered = filtered.filter(p => p.category === category);
     }
     
-    // Sort
     const sort = document.getElementById('sortFilter').value;
     if (sort === 'name') {
         filtered.sort((a, b) => a.productName.localeCompare(b.productName));
@@ -222,89 +212,65 @@ function applyFilters() {
     displayProducts(filtered);
 }
 
-// Cart Functions
-function loadCart() {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-        cart = JSON.parse(savedCart);
+// Cart Functions - Now using Backend API
+async function loadCart() {
+    const data = await apiCall('/cart-items/my-cart');
+    if (data) {
+        cart = data;
         updateCartBadge();
     }
 }
 
-function saveCart() {
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartBadge();
-}
-
 function updateCartBadge() {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById('cartCount').textContent = totalItems;
+    document.getElementById('cartCount').textContent = cart.totalItems || 0;
 }
 
-function addToCart(productId) {
-    const product = allProducts.find(p => p.productId === productId);
-    if (!product) return;
+async function addToCart(productId) {
+    const data = await apiCall('/cart-items/', 'POST', {
+        productId: productId,
+        quantity: 1
+    });
     
-    const existingItem = cart.find(item => item.productId === productId);
-    
-    if (existingItem) {
-        if (existingItem.quantity < product.stock) {
-            existingItem.quantity++;
-            showToast('Item quantity updated in cart', 'success');
-        } else {
-            showToast('Cannot add more - insufficient stock', 'warning');
-            return;
-        }
-    } else {
-        cart.push({
-            productId: product.productId,
-            productName: product.productName,
-            unitPrice: product.unitPrice,
-            quantity: 1,
-            imageUrl: product.imageUrl,
-            maxStock: product.stock
-        });
+    if (data) {
         showToast('Item added to cart', 'success');
+        await loadCart(); // Reload cart from backend
+        
+        if (document.getElementById('cart').classList.contains('active')) {
+            displayCart();
+        }
     }
+}
+
+async function removeFromCart(cartItemId) {
+    const data = await apiCall(`/cart-items/${cartItemId}`, 'DELETE');
     
-    saveCart();
-    if (document.getElementById('cart').classList.contains('active')) {
+    if (data !== null) { // DELETE returns null on success
+        showToast('Item removed from cart', 'info');
+        await loadCart();
         displayCart();
     }
 }
 
-function removeFromCart(productId) {
-    cart = cart.filter(item => item.productId !== productId);
-    saveCart();
-    displayCart();
-    showToast('Item removed from cart', 'info');
-}
-
-function updateCartQuantity(productId, change) {
-    const item = cart.find(item => item.productId === productId);
-    if (!item) return;
-    
-    const newQuantity = item.quantity + change;
-    
+async function updateCartQuantity(cartItemId, newQuantity) {
     if (newQuantity <= 0) {
-        removeFromCart(productId);
+        await removeFromCart(cartItemId);
         return;
     }
     
-    if (newQuantity > item.maxStock) {
-        showToast('Cannot exceed available stock', 'warning');
-        return;
-    }
+    const data = await apiCall(`/cart-items/${cartItemId}`, 'PUT', {
+        quantity: newQuantity
+    });
     
-    item.quantity = newQuantity;
-    saveCart();
-    displayCart();
+    if (data) {
+        await loadCart();
+        displayCart();
+    }
 }
 
 function displayCart() {
     const container = document.getElementById('cartContainer');
     
-    if (cart.length === 0) {
+    if (!cart.items || cart.items.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">🛒</div>
@@ -318,12 +284,14 @@ function displayCart() {
         return;
     }
     
-    const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    const deliveryFee = 50;
+    const tax = cart.subtotal * 0.12;
+    const total = cart.subtotal + deliveryFee + tax;
     
     container.innerHTML = `
         <div class="cart-container">
             <div class="cart-items">
-                ${cart.map(item => `
+                ${cart.items.map(item => `
                     <div class="cart-item">
                         <div class="cart-item-image">
                             <img src="${item.imageUrl || 'https://via.placeholder.com/100'}" 
@@ -335,24 +303,24 @@ function displayCart() {
                             <div class="cart-item-price">₱${parseFloat(item.unitPrice).toFixed(2)}</div>
                             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
                                 <button class="btn" style="padding: 0.375rem 0.75rem; background: #f0f0f0; border: none; border-radius: 0.375rem; cursor: pointer; color: #374151; font-weight: 600;" 
-                                        onclick="updateCartQuantity(${item.productId}, -1)">
+                                        onclick="updateCartQuantity(${item.cartItemId}, ${item.quantity - 1})">
                                     <i class="fas fa-minus" style="font-size: 0.75rem;"></i>
                                 </button>
                                 <input type="text" value="${item.quantity}" readonly 
                                        style="width: 40px; text-align: center; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.375rem; font-weight: 600;">
                                 <button class="btn" style="padding: 0.375rem 0.75rem; background: #f0f0f0; border: none; border-radius: 0.375rem; cursor: pointer; color: #374151; font-weight: 600;" 
-                                        onclick="updateCartQuantity(${item.productId}, 1)">
+                                        onclick="updateCartQuantity(${item.cartItemId}, ${item.quantity + 1})">
                                     <i class="fas fa-plus" style="font-size: 0.75rem;"></i>
                                 </button>
                             </div>
-                            <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Max: ${item.maxStock}</small>
+                            <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Max: ${item.stock}</small>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1rem;">
                             <div style="font-weight: 700; color: #f97316; font-size: 1.125rem;">
                                 ₱${(item.unitPrice * item.quantity).toFixed(2)}
                             </div>
                             <button class="btn btn-primary" style="padding: 0.375rem 0.75rem; background: #ef4444; color: white; border: none; border-radius: 0.375rem; cursor: pointer;"
-                                    onclick="removeFromCart(${item.productId})">
+                                    onclick="removeFromCart(${item.cartItemId})">
                                 <i class="fas fa-trash" style="font-size: 0.75rem;"></i>
                             </button>
                         </div>
@@ -365,19 +333,19 @@ function displayCart() {
                 
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span>₱${subtotal.toFixed(2)}</span>
+                    <span>₱${cart.subtotal.toFixed(2)}</span>
                 </div>
                 <div class="summary-row">
                     <span>Delivery:</span>
-                    <span>₱50.00</span>
+                    <span>₱${deliveryFee.toFixed(2)}</span>
                 </div>
                 <div class="summary-row">
                     <span>Tax:</span>
-                    <span>₱${(subtotal * 0.12).toFixed(2)}</span>
+                    <span>₱${tax.toFixed(2)}</span>
                 </div>
                 
                 <div class="summary-total">
-                    ₱${(subtotal + 50 + (subtotal * 0.12)).toFixed(2)}
+                    ₱${total.toFixed(2)}
                 </div>
                 
                 <button class="btn btn-primary" style="width: 100%; padding: 0.75rem 1.5rem; font-size: 1rem;" onclick="checkout()">
@@ -392,25 +360,27 @@ function displayCart() {
 }
 
 async function checkout() {
-    if (cart.length === 0) {
+    if (!cart.items || cart.items.length === 0) {
         showToast('Your cart is empty', 'warning');
         return;
     }
     
-    // Create order
+    // Create order with items from cart
     const orderData = {
-        items: cart.map(item => ({
+        items: cart.items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
             unitPrice: item.unitPrice
         }))
     };
     
-    const data = await apiCall('/orders', 'POST', orderData);
+    const data = await apiCall('/orders/', 'POST', orderData);
     
     if (data && data.order) {
-        cart = [];
-        saveCart();
+        // Clear cart after successful order
+        await apiCall('/cart-items/my-cart/clear', 'DELETE');
+        await loadCart();
+        
         showToast('Order placed successfully!', 'success');
         showSection('orders');
         loadOrders();
@@ -525,7 +495,7 @@ async function cancelOrder(orderId) {
 }
 
 // Update Profile
-document.getElementById('profileForm').addEventListener('submit', async function(e) {
+document.getElementById('profileForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const profileData = {
@@ -549,22 +519,17 @@ document.getElementById('profileForm').addEventListener('submit', async function
 
 // Navigation
 function showSection(sectionId) {
-    // Close sidebar on mobile
     closeSidebar();
 
-    // Update sidebar
     document.querySelectorAll('.sidebar-nav a').forEach(link => {
         link.classList.remove('active');
     });
-    event.target.closest('.sidebar-nav a')?.classList.add('active');
     
-    // Update content
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
     });
     document.getElementById(sectionId).classList.add('active');
     
-    // Load section-specific data
     if (sectionId === 'orders') {
         loadOrders();
     } else if (sectionId === 'cart') {
@@ -576,7 +541,6 @@ function showSection(sectionId) {
     }
 }
 
-// Hamburger Menu Functions
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('menuOverlay');
@@ -593,21 +557,17 @@ function closeSidebar() {
     overlay.classList.remove('active');
 }
 
-// View Product Details
 function viewProduct(productId) {
     window.location.href = `view_product.html?id=${productId}`;
 }
 
-// Logout
 function logout() {
-    localStorage.removeItem('access_token'); // Changed to match auth.js
+    localStorage.removeItem('access_token');
     localStorage.removeItem('user');
     localStorage.removeItem('user_type');
-    localStorage.removeItem('cart');
     window.location.href = '../auth/login.html';
 }
 
-// Toast Notification
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     const bgColor = {
@@ -649,28 +609,15 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// Add animation styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
     @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
     }
 `;
 document.head.appendChild(style);
