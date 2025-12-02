@@ -341,22 +341,22 @@
             color: white;
         }
 
-        .btn-buy-now {
+        .btn-reserve {
             flex: 1;
             min-width: 140px;
             padding: 1rem;
             font-size: 1rem;
             font-weight: 700;
             border-radius: 0.75rem;
-            background: #f97316;
+            background: #10b981;
             color: white;
             border: none;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .btn-buy-now:hover:not(:disabled) {
-            background: #ea580c;
+        .btn-reserve:hover:not(:disabled) {
+            background: #059669;
             transform: translateY(-2px);
         }
 
@@ -590,7 +590,7 @@
             }
 
             .btn-add-cart,
-            .btn-buy-now {
+            .btn-reserve {
                 width: 100%;
             }
 
@@ -900,14 +900,14 @@
                     </div>
 
                     <!-- Action Buttons -->
-                  <div class="action-buttons">
-    <button class="btn-add-cart" onclick="addToCart()" id="addToCartBtn">
-        <i class="fas fa-cart-plus"></i> Add to Cart
-    </button>
-    <button class="btn-buy-now" onclick="buyNow()" id="buyNowBtn">
-        <i class="fas fa-bolt"></i> Buy Now
-    </button>
-</div>
+                    <div class="action-buttons">
+                        <button class="btn-add-cart" onclick="addToCart()" id="addToCartBtn">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                        <button class="btn-reserve" onclick="reserveProduct()" id="reserveBtn">
+                            <i class="fas fa-bookmark"></i> Reserve
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Seller Info -->

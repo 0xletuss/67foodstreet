@@ -136,7 +136,7 @@ function updateSummary() {
     document.getElementById('total').textContent = `₱${total.toFixed(2)}`;
 }
 
-// Place Order - FIXED VERSION WITH DEBUGGING
+// Place Order - FIXED VERSION WITH ORDER ID URL PARAMETER
 async function placeOrder() {
     if (!cart.items || cart.items.length === 0) {
         showToast('Your cart is empty', 'warning');
@@ -224,6 +224,20 @@ async function placeOrder() {
         
         // Step 2: Create Payment
         console.log('Creating payment...');
+        
+        // Map payment method to database ENUM values
+        // Database accepts: 'Credit Card', 'Cash', 'E-Wallet', 'Bank Transfer'
+        const paymentMethodMap = {
+            'Cash on Delivery': 'Cash',
+            'Credit Card': 'Credit Card',
+            'Debit Card': 'Credit Card',
+            'GCash': 'E-Wallet',
+            'PayMaya': 'E-Wallet',
+            'Bank Transfer': 'Bank Transfer'
+        };
+        
+        const mappedPaymentMethod = paymentMethodMap[paymentMethod] || 'Cash';
+        
         const paymentResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
             method: 'POST',
             headers: {
@@ -231,7 +245,7 @@ async function placeOrder() {
                 'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({
-                paymentMethod: paymentMethod
+                paymentMethod: mappedPaymentMethod
             })
         });
         
@@ -258,11 +272,14 @@ async function placeOrder() {
         // Also clear localStorage cart (if exists)
         localStorage.removeItem('cart');
         
+        // Store order ID for confirmation page (backup method)
+        localStorage.setItem('lastOrderId', orderId);
+        
         showToast('Order placed successfully!', 'success');
         
-        // Redirect to customer dashboard or order confirmation
+        // ✅ FIX: Redirect to success page WITH orderId parameter
         setTimeout(() => {
-            window.location.href = '../customer/customer_dashboard.html';
+            window.location.href = `../order/success.html?orderId=${orderId}`;
         }, 1500);
         
     } catch (error) {
@@ -277,7 +294,7 @@ async function placeOrder() {
 
 // Go Back
 function goBack() {
-    window.location.href = '../customer/customer_dashboard.html';
+    window.location.href = '../dashboard/customer_dashboard.html';
 }
 
 // Loading Overlay

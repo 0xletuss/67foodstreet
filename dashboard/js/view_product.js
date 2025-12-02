@@ -155,8 +155,8 @@ function displayProduct(product) {
     if (stock <= 0) {
         document.getElementById('addToCartBtn').disabled = true;
         document.getElementById('addToCartBtn').innerHTML = '<i class="fas fa-times me-2"></i>Out of Stock';
-        document.getElementById('buyNowBtn').disabled = true;
-        document.getElementById('buyNowBtn').innerHTML = '<i class="fas fa-times me-2"></i>Unavailable';
+        document.getElementById('reserveBtn').disabled = true;
+        document.getElementById('reserveBtn').innerHTML = '<i class="fas fa-times me-2"></i>Unavailable';
     }
 }
 
@@ -248,7 +248,7 @@ function decreaseQuantity() {
     }
 }
 
-// Add to Cart - UPDATED TO USE BACKEND API
+// Add to Cart
 async function addToCart() {
     if (!currentProduct) {
         showToast('Product not loaded', 'danger');
@@ -278,20 +278,36 @@ async function addToCart() {
     }
 }
 
-// Buy Now - UPDATED TO USE BACKEND API
-async function buyNow() {
+// Reserve Product (Add to cart and redirect to order page)
+async function reserveProduct() {
     if (!currentProduct) {
         showToast('Product not loaded', 'danger');
         return;
     }
     
-    // Add product to cart via backend API
-    await addToCart();
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const availableStock = currentProduct.stock || 0;
     
-    // Redirect to checkout page after a short delay
-    setTimeout(() => {
-        window.location.href = '../order/order.html';
-    }, 500);
+    if (quantity > availableStock) {
+        showToast('Not enough stock available', 'warning');
+        return;
+    }
+    
+    // Add product to cart via backend API
+    const data = await apiCall('/cart-items/', 'POST', {
+        productId: currentProduct.productId,
+        quantity: quantity
+    });
+    
+    if (data) {
+        showToast('Item reserved! Redirecting to checkout...', 'success');
+        await loadCart();
+        
+        // Redirect to order page after a short delay
+        setTimeout(() => {
+            window.location.href = 'order.html';
+        }, 500);
+    }
 }
 
 // View Seller Products

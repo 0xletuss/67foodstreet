@@ -365,6 +365,17 @@ async function checkout() {
         return;
     }
     
+    // Redirect to order.html page with cart data
+    window.location.href = '../order/order.html';
+}
+
+// Alternative: If you want to create the order immediately and then redirect
+async function checkoutWithOrder() {
+    if (!cart.items || cart.items.length === 0) {
+        showToast('Your cart is empty', 'warning');
+        return;
+    }
+    
     // Create order with items from cart
     const orderData = {
         items: cart.items.map(item => ({
@@ -382,11 +393,11 @@ async function checkout() {
         await loadCart();
         
         showToast('Order placed successfully!', 'success');
-        showSection('orders');
-        loadOrders();
+        
+        // Redirect to order.html with the order ID
+        window.location.href = `order.html?orderId=${data.order.orderId}`;
     }
 }
-
 // Load Orders
 async function loadOrders() {
     const status = document.getElementById('orderStatusFilter').value;
