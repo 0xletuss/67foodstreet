@@ -65,12 +65,12 @@ async function loadCustomerProfile() {
     const data = await apiCall('/customer/profile');
     if (data && data.profile) {
         currentCustomer = data.profile;
-        document.getElementById('customerNameNav').textContent = `Welcome, ${currentCustomer.customerName}!`;
+        document.getElementById('customerName').textContent = `Welcome, ${currentCustomer.customerName}!`;
         
         // Populate profile form
-        document.getElementById('customerName').value = currentCustomer.customerName || '';
+        document.getElementById('profileCustomerName').value = currentCustomer.customerName || '';
         document.getElementById('phoneNumber').value = currentCustomer.phoneNumber || '';
-        document.getElementById('email').value = currentCustomer.email || '';
+        document.getElementById('profileEmail').value = currentCustomer.email || '';
         document.getElementById('address').value = currentCustomer.address || '';
     }
 }
@@ -133,47 +133,45 @@ function displayProducts(products) {
     
     if (!products || products.length === 0) {
         container.innerHTML = `
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="fas fa-shopping-bag"></i>
-                    <h4>No products available</h4>
-                    <p class="text-muted">Check back later for new items</p>
-                </div>
+            <div class="empty-state">
+                <div class="empty-state-icon">🛍️</div>
+                <h4>No products available</h4>
+                <p class="empty-state-text">Check back later for new items</p>
             </div>
         `;
         return;
     }
     
     container.innerHTML = products.map(product => `
-        <div class="col-md-3 col-sm-6">
-            <div class="card product-card" style="cursor: pointer;" onclick="viewProduct(${product.productId})">
-                <div class="position-relative">
-                    <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
-                         class="product-image" 
-                         alt="${product.productName}">
-                    <span class="product-badge ${product.isAvailable ? 'badge-available' : 'badge-unavailable'}">
-                        ${product.isAvailable ? 'Available' : 'Unavailable'}
-                    </span>
+        <div class="product-card" onclick="viewProduct(${product.productId})" style="cursor: pointer;">
+            <div class="product-image" style="position: relative;">
+                <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
+                     alt="${product.productName}"
+                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 1rem 1rem 0 0;">
+                <span class="product-badge ${product.isAvailable ? 'badge-available' : 'badge-unavailable'}" style="position: absolute; top: 0.75rem; right: 0.75rem;">
+                    ${product.isAvailable ? '✓ Available' : '✕ Unavailable'}
+                </span>
+            </div>
+            <div class="product-info">
+                <div class="product-name" title="${product.productName}">
+                    ${product.productName}
                 </div>
-                <div class="card-body">
-                    <h6 class="card-title text-truncate" title="${product.productName}">
-                        ${product.productName}
-                    </h6>
-                    <p class="card-text text-muted small text-truncate" title="${product.description}">
-                        ${product.description || 'No description'}
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="text-primary mb-0">₱${parseFloat(product.unitPrice).toFixed(2)}</h5>
-                        <small class="text-muted">Stock: ${product.stock || 0}</small>
-                    </div>
-                    ${product.category ? `<span class="badge bg-secondary mb-2">${product.category}</span>` : ''}
-                    ${product.sellerName ? `<p class="small text-muted mb-2"><i class="fas fa-store me-1"></i>${product.sellerName}</p>` : ''}
-                    <button class="btn btn-primary w-100" 
-                            onclick="event.stopPropagation(); addToCart(${product.productId})"
-                            ${!product.isAvailable || product.stock <= 0 ? 'disabled' : ''}>
-                        <i class="fas fa-cart-plus me-1"></i>Add to Cart
-                    </button>
+                <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;" title="${product.description}">
+                    ${product.description || 'Fresh and delicious'}
+                </p>
+                <div class="product-price">
+                    ₱${parseFloat(product.unitPrice).toFixed(2)}
                 </div>
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; font-size: 0.875rem; color: #6b7280;">
+                    <span>📦 Stock: <strong>${product.stock || 0}</strong></span>
+                </div>
+                ${product.category ? `<div style="display: inline-block; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #fed7aa; color: #b45309; margin-bottom: 1rem;">${product.category}</div>` : ''}
+                ${product.sellerName ? `<p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem;"><i class="fas fa-store" style="color: #f97316; margin-right: 0.5rem;"></i>${product.sellerName}</p>` : ''}
+                <button class="btn btn-primary" style="width: 100%;"
+                        onclick="event.stopPropagation(); addToCart(${product.productId})"
+                        ${!product.isAvailable || product.stock <= 0 ? 'disabled' : ''}>
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
             </div>
         </div>
     `).join('');
@@ -309,10 +307,10 @@ function displayCart() {
     if (cart.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <i class="fas fa-shopping-cart"></i>
+                <div class="empty-state-icon">🛒</div>
                 <h4>Your cart is empty</h4>
-                <p class="text-muted">Add some products to get started</p>
-                <button class="btn btn-primary" onclick="showSection('products')">
+                <p class="empty-state-text">Add some products to get started</p>
+                <button class="btn btn-primary" onclick="showSection('products')" style="margin-top: 1rem;">
                     Browse Products
                 </button>
             </div>
@@ -323,57 +321,71 @@ function displayCart() {
     const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
     
     container.innerHTML = `
-        <div class="card">
-            <div class="card-body">
+        <div class="cart-container">
+            <div class="cart-items">
                 ${cart.map(item => `
-                    <div class="row align-items-center mb-3 pb-3 border-bottom">
-                        <div class="col-md-2">
+                    <div class="cart-item">
+                        <div class="cart-item-image">
                             <img src="${item.imageUrl || 'https://via.placeholder.com/100'}" 
-                                 class="img-fluid rounded" alt="${item.productName}">
+                                 alt="${item.productName}"
+                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.5rem;">
                         </div>
-                        <div class="col-md-4">
-                            <h6>${item.productName}</h6>
-                            <p class="text-muted mb-0">₱${parseFloat(item.unitPrice).toFixed(2)}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="input-group input-group-sm">
-                                <button class="btn btn-outline-secondary" 
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${item.productName}</div>
+                            <div class="cart-item-price">₱${parseFloat(item.unitPrice).toFixed(2)}</div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                                <button class="btn" style="padding: 0.375rem 0.75rem; background: #f0f0f0; border: none; border-radius: 0.375rem; cursor: pointer; color: #374151; font-weight: 600;" 
                                         onclick="updateCartQuantity(${item.productId}, -1)">
-                                    <i class="fas fa-minus"></i>
+                                    <i class="fas fa-minus" style="font-size: 0.75rem;"></i>
                                 </button>
-                                <input type="text" class="form-control text-center" 
-                                       value="${item.quantity}" readonly>
-                                <button class="btn btn-outline-secondary" 
+                                <input type="text" value="${item.quantity}" readonly 
+                                       style="width: 40px; text-align: center; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.375rem; font-weight: 600;">
+                                <button class="btn" style="padding: 0.375rem 0.75rem; background: #f0f0f0; border: none; border-radius: 0.375rem; cursor: pointer; color: #374151; font-weight: 600;" 
                                         onclick="updateCartQuantity(${item.productId}, 1)">
-                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-plus" style="font-size: 0.75rem;"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Max: ${item.maxStock}</small>
+                            <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Max: ${item.maxStock}</small>
                         </div>
-                        <div class="col-md-2 text-end">
-                            <h6 class="text-primary">₱${(item.unitPrice * item.quantity).toFixed(2)}</h6>
-                        </div>
-                        <div class="col-md-1 text-end">
-                            <button class="btn btn-sm btn-danger" 
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1rem;">
+                            <div style="font-weight: 700; color: #f97316; font-size: 1.125rem;">
+                                ₱${(item.unitPrice * item.quantity).toFixed(2)}
+                            </div>
+                            <button class="btn btn-primary" style="padding: 0.375rem 0.75rem; background: #ef4444; color: white; border: none; border-radius: 0.375rem; cursor: pointer;"
                                     onclick="removeFromCart(${item.productId})">
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash" style="font-size: 0.75rem;"></i>
                             </button>
                         </div>
                     </div>
                 `).join('')}
+            </div>
+            
+            <div class="cart-summary">
+                <h3 style="font-weight: 700; color: #111827; margin-bottom: 1.5rem; font-size: 1.25rem;">Order Summary</h3>
                 
-                <div class="row mt-4">
-                    <div class="col-md-8"></div>
-                    <div class="col-md-4">
-                        <h5 class="d-flex justify-content-between">
-                            <span>Subtotal:</span>
-                            <span class="text-primary">₱${subtotal.toFixed(2)}</span>
-                        </h5>
-                        <button class="btn btn-primary w-100 mt-3" onclick="checkout()">
-                            <i class="fas fa-check me-1"></i>Proceed to Checkout
-                        </button>
-                    </div>
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>₱${subtotal.toFixed(2)}</span>
                 </div>
+                <div class="summary-row">
+                    <span>Delivery:</span>
+                    <span>₱50.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax:</span>
+                    <span>₱${(subtotal * 0.12).toFixed(2)}</span>
+                </div>
+                
+                <div class="summary-total">
+                    ₱${(subtotal + 50 + (subtotal * 0.12)).toFixed(2)}
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%; padding: 0.75rem 1.5rem; font-size: 1rem;" onclick="checkout()">
+                    <i class="fas fa-check"></i> Checkout
+                </button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 0.75rem; padding: 0.75rem 1.5rem; font-size: 1rem;" onclick="showSection('products')">
+                    Continue Shopping
+                </button>
             </div>
         </div>
     `;
@@ -422,40 +434,42 @@ function displayOrders(orders) {
     if (!orders || orders.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <i class="fas fa-box"></i>
+                <div class="empty-state-icon">📦</div>
                 <h4>No orders found</h4>
-                <p class="text-muted">You haven't placed any orders yet</p>
+                <p class="empty-state-text">You haven't placed any orders yet</p>
             </div>
         `;
         return;
     }
     
     container.innerHTML = orders.map(order => `
-        <div class="card order-card mb-3">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-2">
-                        <h6 class="mb-1">Order #${order.orderId}</h6>
-                        <small class="text-muted">${new Date(order.orderDate).toLocaleDateString()}</small>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="mb-0"><strong>Total:</strong> ₱${parseFloat(order.totalAmount).toFixed(2)}</p>
-                        <small class="text-muted">${order.items?.length || 0} item(s)</small>
-                    </div>
-                    <div class="col-md-3">
-                        <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <button class="btn btn-sm btn-outline-primary me-2" 
-                                onclick="viewOrderDetails(${order.orderId})">
-                            <i class="fas fa-eye me-1"></i>View Details
-                        </button>
-                        ${order.status === 'Pending' || order.status === 'Confirmed' ? 
-                            `<button class="btn btn-sm btn-outline-danger" 
-                                     onclick="cancelOrder(${order.orderId})">
-                                <i class="fas fa-times me-1"></i>Cancel
-                            </button>` : ''}
-                    </div>
+        <div class="order-card">
+            <div class="order-header">
+                <div>
+                    <div class="order-id">Order #${order.orderId}</div>
+                    <div class="order-date">${new Date(order.orderDate).toLocaleDateString()}</div>
+                </div>
+                <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+            </div>
+            
+            <div class="order-items">
+                ${order.items?.length || 0} item(s) • Total: <strong>₱${parseFloat(order.totalAmount).toFixed(2)}</strong>
+            </div>
+            
+            <div class="order-footer">
+                <div class="order-total">
+                    ₱${parseFloat(order.totalAmount).toFixed(2)}
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                            onclick="viewOrderDetails(${order.orderId})">
+                        <i class="fas fa-eye"></i> Details
+                    </button>
+                    ${order.status === 'Pending' || order.status === 'Confirmed' ? 
+                        `<button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem; color: #ef4444; border: 2px solid #ef4444;" 
+                                 onclick="cancelOrder(${order.orderId})">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>` : ''}
                 </div>
             </div>
         </div>
@@ -515,7 +529,7 @@ document.getElementById('profileForm').addEventListener('submit', async function
     e.preventDefault();
     
     const profileData = {
-        customerName: document.getElementById('customerName').value,
+        customerName: document.getElementById('profileCustomerName').value,
         phoneNumber: document.getElementById('phoneNumber').value,
         address: document.getElementById('address').value
     };
@@ -536,10 +550,10 @@ document.getElementById('profileForm').addEventListener('submit', async function
 // Navigation
 function showSection(sectionId) {
     // Update sidebar
-    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
         link.classList.remove('active');
     });
-    event.target.closest('.nav-link')?.classList.add('active');
+    event.target.closest('.sidebar-nav a')?.classList.add('active');
     
     // Update content
     document.querySelectorAll('.content-section').forEach(section => {
@@ -576,10 +590,67 @@ function logout() {
 // Toast Notification
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
-    toast.style.zIndex = '9999';
+    const bgColor = {
+        'success': '#dcfce7',
+        'error': '#fee2e2',
+        'warning': '#fef3c7',
+        'info': '#dbeafe',
+        'danger': '#fee2e2'
+    }[type] || '#dbeafe';
+    
+    const textColor = {
+        'success': '#166534',
+        'error': '#991b1b',
+        'warning': '#92400e',
+        'info': '#1e40af',
+        'danger': '#991b1b'
+    }[type] || '#1e40af';
+    
+    toast.className = 'toast-notification';
+    toast.style.cssText = `
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: ${bgColor};
+        color: ${textColor};
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
+    `;
     toast.innerHTML = message;
     document.body.appendChild(toast);
     
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
+
+// Add animation styles
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);

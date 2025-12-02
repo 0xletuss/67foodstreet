@@ -3,291 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Details - E-Commerce</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Product Details - 67StreetFood</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #10b981;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
         }
 
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
 
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-
-        .breadcrumb {
+        /* Header */
+        header {
             background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .product-image-container {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             position: sticky;
-            top: 20px;
+            top: 0;
+            z-index: 40;
         }
 
-        .product-main-image {
-            width: 100%;
-            height: 450px;
-            object-fit: contain;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-            margin-bottom: 15px;
-        }
-
-        .product-thumbnail {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .product-thumbnail:hover,
-        .product-thumbnail.active {
-            border-color: var(--primary-color);
-            transform: scale(1.05);
-        }
-
-        .product-details {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .product-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 15px;
-        }
-
-        .product-price {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-
-        .product-rating {
-            color: #fbbf24;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-        }
-
-        .product-meta {
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 20px 0;
-            margin: 20px 0;
-        }
-
-        .meta-item {
+        .header-content {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
+            align-items: center;
+            padding: 1rem 0;
         }
 
-        .meta-label {
-            color: #6b7280;
-            font-weight: 500;
+        .logo {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #f97316;
         }
 
-        .meta-value {
-            color: #1f2937;
-            font-weight: 600;
-        }
-
-        .stock-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .stock-in {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-
-        .stock-low {
-            background-color: #fef3c7;
-            color: #78350f;
-        }
-
-        .stock-out {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .quantity-selector {
+        .header-right {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 1.5rem;
         }
 
-        .quantity-btn {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #d1d5db;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .quantity-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .quantity-input {
-            width: 80px;
-            height: 40px;
-            text-align: center;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-add-cart {
-            flex: 1;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: 2px solid var(--primary-color);
-            background: white;
-            color: var(--primary-color);
-            transition: all 0.3s;
-        }
-
-        .btn-add-cart:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .btn-buy-now {
-            flex: 1;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-            color: white;
-            transition: all 0.3s;
-        }
-
-        .btn-buy-now:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-        }
-
-        .description-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-top: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--primary-color);
-        }
-
-        .seller-info {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .seller-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
+        .header-info {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
+            gap: 1rem;
+            color: #4b5563;
         }
 
-        .related-products {
-            margin-top: 50px;
-        }
-
-        .related-product-card {
+        .btn {
+            padding: 0.5rem 1.5rem;
             border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            height: 100%;
+            border-radius: 9999px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
         }
 
-        .related-product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        .btn-primary {
+            background: #f97316;
+            color: white;
         }
 
-        .related-product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #e5e7eb;
+        .btn-primary:hover {
+            background: #ea580c;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #f97316;
+            border: 2px solid #f97316;
+        }
+
+        .btn-outline:hover {
+            background: #fff7ed;
+        }
+
+        .cart-btn {
+            position: relative;
         }
 
         .cart-badge {
             position: absolute;
             top: -8px;
             right: -8px;
-            background: var(--danger-color);
+            background: #ef4444;
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -295,200 +113,580 @@
             font-weight: 700;
         }
 
-        .back-button {
-            background: white;
-            border: 1px solid #d1d5db;
-            padding: 10px 20px;
-            border-radius: 8px;
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
             color: #6b7280;
+        }
+
+        .breadcrumb a {
+            color: #f97316;
             text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumb a:hover {
+            color: #ea580c;
+        }
+
+        /* Main Content */
+        .product-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            padding: 2rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .product-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* Product Image Section */
+        .product-image-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #ffedd5, #fed7aa);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Product Details Section */
+        .product-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .product-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.3;
+            margin-bottom: 0.75rem;
+        }
+
+        .product-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+        }
+
+        .meta-value {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .product-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #f97316;
+            letter-spacing: -1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .stock-in {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .stock-low {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stock-out {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .quantity-section {
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem 0;
+            margin: 1.5rem 0;
+        }
+
+        .quantity-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quantity-btn {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .quantity-btn:hover {
+            background: #f97316;
+            color: white;
+            border-color: #f97316;
+        }
+
+        .quantity-input {
+            width: 70px;
+            height: 44px;
+            text-align: center;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .quantity-available {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-add-cart {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            background: white;
+            color: #f97316;
+            border: 2px solid #f97316;
+            cursor: pointer;
             transition: all 0.3s;
         }
 
-        .back-button:hover {
-            background: #f9fafb;
-            color: var(--primary-color);
-            border-color: var(--primary-color);
+        .btn-add-cart:hover:not(:disabled) {
+            background: #f97316;
+            color: white;
         }
 
+        .btn-buy-now {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            background: #f97316;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-buy-now:hover:not(:disabled) {
+            background: #ea580c;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Seller Info */
+        .seller-section {
+            background: linear-gradient(135deg, #fff7ed, white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .seller-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .seller-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fb923c, #f97316);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .seller-info {
+            flex: 1;
+        }
+
+        .seller-name {
+            font-weight: 700;
+            color: #111827;
+            font-size: 1.1rem;
+        }
+
+        .seller-badge {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .seller-action {
+            margin-left: auto;
+        }
+
+        /* Description Section */
+        .description-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .product-description {
+            color: #4b5563;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        /* Related Products */
+        .related-section {
+            margin-top: 3rem;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .related-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(-5px);
+        }
+
+        .related-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ffedd5, #fed7aa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .related-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .related-info {
+            padding: 1.5rem;
+        }
+
+        .related-name {
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .related-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f97316;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Loading & Spinner */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
         }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        /* Back Button */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #f97316;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            color: #ea580c;
+            transform: translateX(-4px);
+        }
+
+        @media (max-width: 768px) {
+            .product-name {
+                font-size: 1.5rem;
+            }
+
+            .product-price {
+                font-size: 2rem;
+            }
+
+            .product-image-section {
+                position: static;
+                top: auto;
+            }
+
+            .related-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="customer_dashboard.html">
-                <i class="fas fa-shopping-bag me-2"></i>E-Commerce
-            </a>
-            <div class="d-flex align-items: center">
-                <div class="position-relative me-3">
-                    <button class="btn btn-light" onclick="window.location.href='customer_dashboard.html#cart'">
-                        <i class="fas fa-shopping-cart"></i>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">67StreetFood</h1>
+                <div class="header-right">
+                    <div class="header-info">
+                        <span id="customerName">Welcome!</span>
+                    </div>
+                    <button class="btn cart-btn" onclick="window.location.href='customer_dashboard.html#cart'">
+                        🛒 Cart
                         <span class="cart-badge" id="cartCount">0</span>
                     </button>
+                    <button class="btn btn-outline" onclick="logout()">Logout</button>
                 </div>
-                <span class="text-white me-3" id="customerName">Welcome!</span>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">
-                    <i class="fas fa-sign-out-alt me-1"></i>Logout
-                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+        <div class="spinner"></div>
     </div>
 
-    <div class="container mt-4 mb-5">
+    <div class="container">
         <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="customer_dashboard.html">Home</a></li>
-                <li class="breadcrumb-item"><a href="customer_dashboard.html#products">Products</a></li>
-                <li class="breadcrumb-item active" id="breadcrumbProduct">Product Details</li>
-            </ol>
+        <nav class="breadcrumb">
+            <a href="customer_dashboard.html">Home</a>
+            <span>/</span>
+            <a href="customer_dashboard.html#products">Products</a>
+            <span>/</span>
+            <span id="breadcrumbProduct">Product</span>
         </nav>
 
-        <!-- Back Button -->
-        <a href="customer_dashboard.html" class="back-button mb-4 d-inline-block">
-            <i class="fas fa-arrow-left me-2"></i>Back to Products
+        <!-- Back Link -->
+        <a href="customer_dashboard.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Products
         </a>
 
-        <!-- Product Details -->
-        <div class="row mt-4">
-            <!-- Product Images -->
-            <div class="col-md-5">
-                <div class="product-image-container">
-                    <img id="mainProductImage" 
-                         src="https://via.placeholder.com/450?text=Loading..." 
-                         alt="Product" 
-                         class="product-main-image">
-                    
-                    <!-- Thumbnails (if multiple images available) -->
-                    <div id="productThumbnails" class="d-flex gap-2 flex-wrap"></div>
+        <!-- Product Section -->
+        <div class="product-container">
+            <!-- Product Image -->
+            <div class="product-image-section">
+                <div class="main-image">
+                    <img id="mainProductImage" src="https://via.placeholder.com/400?text=Loading..." alt="Product">
                 </div>
             </div>
 
-            <!-- Product Info -->
-            <div class="col-md-7">
-                <div class="product-details">
-                    <h1 class="product-title" id="productName">Loading...</h1>
+            <!-- Product Details -->
+            <div class="product-details">
+                <!-- Header Info -->
+                <div class="product-header">
+                    <h1 class="product-name" id="productName">Loading...</h1>
                     
-                    <div class="product-rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
-                        <span class="text-muted ms-2">(4.5)</span>
+                    <div class="product-meta">
+                        <div class="meta-item">
+                            📁 <span class="meta-value" id="productCategory">Category</span>
+                        </div>
+                        <div class="meta-item">
+                            🏪 <span class="meta-value" id="productSeller">Seller</span>
+                        </div>
                     </div>
 
                     <div class="product-price" id="productPrice">₱0.00</div>
 
-                    <!-- Product Meta -->
-                    <div class="product-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Category</span>
-                            <span class="meta-value" id="productCategory">-</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Stock</span>
-                            <span id="productStock">
-                                <span class="stock-badge stock-in">In Stock</span>
-                            </span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Seller</span>
-                            <span class="meta-value" id="productSeller">-</span>
-                        </div>
+                    <div id="productStock">
+                        <span class="stock-badge stock-in">✓ In Stock</span>
                     </div>
 
-                    <!-- Quantity Selector -->
-                    <div class="quantity-selector">
-                        <label class="meta-label me-3">Quantity:</label>
-                        <button class="quantity-btn" onclick="decreaseQuantity()">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="99" readonly>
-                        <button class="quantity-btn" onclick="increaseQuantity()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <span class="text-muted ms-3"><span id="availableStock">0</span> available</span>
+                    <!-- Quantity Section -->
+                    <div class="quantity-section">
+                        <div class="quantity-label">Quantity</div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="decreaseQuantity()">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="99" readonly>
+                            <button class="quantity-btn" onclick="increaseQuantity()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <span class="quantity-available">📦 <span id="availableStock">0</span> available</span>
+                        </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="action-buttons">
                         <button class="btn-add-cart" onclick="addToCart()" id="addToCartBtn">
-                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                            <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
                         <button class="btn-buy-now" onclick="buyNow()" id="buyNowBtn">
-                            <i class="fas fa-bolt me-2"></i>Buy Now
+                            <i class="fas fa-bolt"></i> Buy Now
                         </button>
                     </div>
+                </div>
 
-                    <!-- Seller Info -->
-                    <div class="seller-info">
-                        <div class="d-flex align-items-center">
-                            <div class="seller-avatar" id="sellerAvatar">S</div>
-                            <div class="ms-3">
-                                <h6 class="mb-0" id="sellerName">Loading...</h6>
-                                <small class="text-muted">Official Store</small>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm ms-auto" onclick="viewSellerProducts()">
-                                <i class="fas fa-store me-1"></i>View Shop
-                            </button>
+                <!-- Seller Info -->
+                <div class="seller-section">
+                    <div class="seller-header">
+                        <div class="seller-avatar" id="sellerAvatar">S</div>
+                        <div class="seller-info">
+                            <div class="seller-name" id="sellerName">Loading...</div>
+                            <div class="seller-badge">Official Store</div>
                         </div>
+                        <button class="btn btn-primary seller-action" onclick="viewSellerProducts()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            <i class="fas fa-store"></i> View Shop
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Description Section -->
-        <div class="row">
-            <div class="col-12">
-                <div class="description-section">
-                    <h2 class="section-title">Product Description</h2>
-                    <p id="productDescription" class="text-muted">Loading product description...</p>
-                </div>
-            </div>
+        <!-- Description -->
+        <div class="description-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i> Product Details
+            </h2>
+            <p class="product-description" id="productDescription">Loading product description...</p>
         </div>
 
         <!-- Related Products -->
-        <div class="related-products">
-            <h2 class="section-title mb-4">
-                <i class="fas fa-box-open me-2"></i>Related Products
+        <section class="related-section">
+            <h2 class="section-title">
+                <i class="fas fa-box"></i> Related Products
             </h2>
-            <div id="relatedProductsContainer" class="row g-4">
-                <div class="col-12 text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+            <div id="relatedProductsContainer" class="related-grid">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
-    <!-- Toast Container -->
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
-        <div id="toastContainer"></div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/view_product.js"></script>
 </body>
 </html>

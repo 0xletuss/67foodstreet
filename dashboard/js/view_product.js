@@ -138,28 +138,27 @@ async function loadRelatedProducts(category, sellerId) {
         
         if (relatedProducts.length === 0) {
             container.innerHTML = `
-                <div class="col-12 text-center text-muted">
-                    <p>No related products found</p>
+                <div class="loading-spinner">
+                    <p style="color: #6b7280;">No related products found</p>
                 </div>
             `;
             return;
         }
         
         container.innerHTML = relatedProducts.map(product => `
-            <div class="col-md-3 col-sm-6">
-                <div class="card related-product-card" onclick="viewProduct(${product.productId})">
+            <div class="related-card" onclick="viewProduct(${product.productId})">
+                <div class="related-image">
                     <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" 
-                         class="related-product-image" 
                          alt="${product.productName}">
-                    <div class="card-body">
-                        <h6 class="card-title text-truncate" title="${product.productName}">
-                            ${product.productName}
-                        </h6>
-                        <p class="text-muted small mb-2">${product.category || 'Uncategorized'}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="text-primary mb-0">₱${parseFloat(product.unitPrice).toFixed(2)}</h5>
-                            <small class="text-muted">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</small>
-                        </div>
+                </div>
+                <div class="related-info">
+                    <div class="related-name">${product.productName}</div>
+                    <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem;">
+                        ${product.category || 'Uncategorized'}
+                    </div>
+                    <div class="related-price">₱${parseFloat(product.unitPrice).toFixed(2)}</div>
+                    <div style="font-size: 0.875rem; color: ${product.stock > 0 ? '#166534' : '#991b1b'};">
+                        ${product.stock > 0 ? '✓ In Stock' : '✕ Out of Stock'}
                     </div>
                 </div>
             </div>
@@ -168,8 +167,8 @@ async function loadRelatedProducts(category, sellerId) {
     } catch (error) {
         console.error('Error loading related products:', error);
         container.innerHTML = `
-            <div class="col-12 text-center text-muted">
-                <p>Unable to load related products</p>
+            <div class="loading-spinner">
+                <p style="color: #6b7280;">Unable to load related products</p>
             </div>
         `;
     }
@@ -299,27 +298,68 @@ function showLoading(show) {
 
 // Toast Notification
 function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer');
-    const toastId = 'toast-' + Date.now();
+    const bgColor = {
+        'success': '#dcfce7',
+        'error': '#fee2e2',
+        'warning': '#fef3c7',
+        'info': '#dbeafe',
+        'danger': '#fee2e2'
+    }[type] || '#dbeafe';
     
-    const toastHTML = `
-        <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
+    const textColor = {
+        'success': '#166534',
+        'error': '#991b1b',
+        'warning': '#92400e',
+        'info': '#1e40af',
+        'danger': '#991b1b'
+    }[type] || '#1e40af';
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.style.cssText = `
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: ${bgColor};
+        color: ${textColor};
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
     `;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
     
-    toastContainer.innerHTML = toastHTML;
-    
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
-    toast.show();
-    
-    toastElement.addEventListener('hidden.bs.toast', function() {
-        toastElement.remove();
-    });
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
+
+// Add animation styles
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
