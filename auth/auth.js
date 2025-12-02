@@ -41,11 +41,14 @@ function isLoggedIn() {
 }
 
 // Logout function
+// Logout function - FIXED VERSION
 function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
     localStorage.removeItem('user_type');
-    window.location.href = '/67streetfood/auth/login.html';
+    
+    // Use relative path instead of absolute path
+    window.location.href = '../auth/login.html';
 }
 
 // Redirect based on user type
