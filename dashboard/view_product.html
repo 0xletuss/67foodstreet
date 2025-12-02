@@ -5,814 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details - 67StreetFood</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        /* Header */
-        header {
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 40;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .logo {
-            font-size: 1.875rem;
-            font-weight: bold;
-            color: #f97316;
-            flex-shrink: 0;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            flex: 1;
-        }
-
-        .header-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #4b5563;
-            font-size: 0.95rem;
-        }
-
-        .btn {
-            padding: 0.5rem 1.5rem;
-            border: none;
-            border-radius: 9999px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background: #f97316;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #ea580c;
-        }
-
-        .btn-outline {
-            background: white;
-            color: #f97316;
-            border: 2px solid #f97316;
-        }
-
-        .btn-outline:hover {
-            background: #fff7ed;
-        }
-
-        .cart-btn {
-            position: relative;
-        }
-
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1.5rem 0;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-
-        .breadcrumb a {
-            color: #f97316;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .breadcrumb a:hover {
-            color: #ea580c;
-        }
-
-        /* Main Content */
-        .product-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            padding: 2rem 0;
-        }
-
-        @media (max-width: 768px) {
-            .product-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-        }
-
-        /* Product Image Section */
-        .product-image-section {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            height: fit-content;
-            position: sticky;
-            top: 100px;
-        }
-
-        .main-image {
-            width: 100%;
-            height: 400px;
-            background: linear-gradient(135deg, #ffedd5, #fed7aa);
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-
-        .main-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Product Details Section */
-        .product-details {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .product-header {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .product-name {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #111827;
-            line-height: 1.3;
-            margin-bottom: 0.75rem;
-        }
-
-        .product-meta {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            font-size: 0.95rem;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #6b7280;
-            white-space: nowrap;
-        }
-
-        .meta-value {
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .product-price {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #f97316;
-            letter-spacing: -1px;
-            margin-bottom: 1.5rem;
-        }
-
-        .stock-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
-
-        .stock-in {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .stock-low {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .stock-out {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .quantity-section {
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 1.5rem 0;
-            margin: 1.5rem 0;
-        }
-
-        .quantity-label {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 1rem;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .quantity-btn {
-            width: 44px;
-            height: 44px;
-            border: 1px solid #d1d5db;
-            background: white;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            color: #374151;
-            flex-shrink: 0;
-        }
-
-        .quantity-btn:hover {
-            background: #f97316;
-            color: white;
-            border-color: #f97316;
-        }
-
-        .quantity-input {
-            width: 70px;
-            height: 44px;
-            text-align: center;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            font-size: 1.125rem;
-            flex-shrink: 0;
-        }
-
-        .quantity-available {
-            color: #6b7280;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-add-cart {
-            flex: 1;
-            min-width: 140px;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 0.75rem;
-            background: white;
-            color: #f97316;
-            border: 2px solid #f97316;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-add-cart:hover:not(:disabled) {
-            background: #f97316;
-            color: white;
-        }
-
-        .btn-reserve {
-            flex: 1;
-            min-width: 140px;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 0.75rem;
-            background: #10b981;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-reserve:hover:not(:disabled) {
-            background: #059669;
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Seller Info */
-        .seller-section {
-            background: linear-gradient(135deg, #fff7ed, white);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .seller-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .seller-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #fb923c, #f97316);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-
-        .seller-info {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .seller-name {
-            font-weight: 700;
-            color: #111827;
-            font-size: 1.1rem;
-            word-break: break-word;
-        }
-
-        .seller-badge {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-
-        .seller-action {
-            margin-left: auto;
-        }
-
-        /* Description Section */
-        .description-section {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-top: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #111827;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .product-description {
-            color: #4b5563;
-            line-height: 1.8;
-            font-size: 1rem;
-        }
-
-        /* Related Products */
-        .related-section {
-            margin-top: 3rem;
-        }
-
-        .related-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .related-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .related-card:hover {
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            transform: translateY(-5px);
-        }
-
-        .related-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #ffedd5, #fed7aa);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .related-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .related-info {
-            padding: 1.5rem;
-        }
-
-        .related-name {
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .related-price {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #f97316;
-            margin-bottom: 0.75rem;
-        }
-
-        /* Loading & Spinner */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f0f0f0;
-            border-top: 4px solid #f97316;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-spinner {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 300px;
-        }
-
-        /* Back Button */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #f97316;
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s;
-        }
-
-        .back-link:hover {
-            color: #ea580c;
-            transform: translateX(-4px);
-        }
-
-        @media (max-width: 768px) {
-            .product-name {
-                font-size: 1.5rem;
-            }
-
-            .product-price {
-                font-size: 2rem;
-            }
-
-            .product-image-section {
-                position: static;
-                top: auto;
-            }
-
-            .related-grid {
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            }
-
-            .product-container {
-                gap: 1.5rem;
-            }
-
-            .main-image {
-                height: 300px;
-            }
-
-            .product-header,
-            .seller-section,
-            .description-section {
-                padding: 1.5rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn-add-cart,
-            .btn-reserve {
-                width: 100%;
-            }
-
-            .quantity-controls {
-                flex-wrap: wrap;
-            }
-
-            .quantity-available {
-                flex-basis: 100%;
-                margin-top: 0.5rem;
-            }
-
-            .seller-header {
-                flex-wrap: wrap;
-            }
-
-            .seller-action {
-                margin-left: 0;
-                margin-top: 1rem;
-                width: 100%;
-            }
-
-            .section-title {
-                font-size: 1.25rem;
-            }
-
-            .product-meta {
-                gap: 1rem;
-            }
-
-            .meta-item {
-                font-size: 0.9rem;
-            }
-
-            .product-description {
-                font-size: 0.95rem;
-            }
-
-            .header-info {
-                display: none;
-            }
-
-            .header-content {
-                padding: 0.75rem 0;
-            }
-
-            .logo {
-                font-size: 1.5rem;
-            }
-
-            .header-right {
-                gap: 0.75rem;
-            }
-
-            .btn {
-                padding: 0.4rem 1rem;
-                font-size: 0.9rem;
-            }
-
-            .breadcrumb {
-                font-size: 0.75rem;
-                gap: 0.25rem;
-                margin: 1rem 0;
-            }
-
-            .back-link {
-                font-size: 0.9rem;
-                margin-bottom: 1rem;
-            }
-
-            .container {
-                padding: 0 0.75rem;
-            }
-
-            .quantity-input {
-                width: 60px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .quantity-btn {
-                width: 40px;
-                height: 40px;
-            }
-
-            .quantity-section {
-                padding: 1rem 0;
-                margin: 1rem 0;
-            }
-
-            .product-meta {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-
-            .related-grid {
-                gap: 1rem;
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-
-            .related-card {
-                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            }
-
-            .related-image {
-                height: 150px;
-            }
-
-            .related-info {
-                padding: 1rem;
-            }
-
-            .related-name {
-                font-size: 1rem;
-            }
-
-            .related-price {
-                font-size: 1.25rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .product-name {
-                font-size: 1.25rem;
-                line-height: 1.2;
-            }
-
-            .product-price {
-                font-size: 1.75rem;
-            }
-
-            .main-image {
-                height: 250px;
-                margin-bottom: 1rem;
-            }
-
-            .section-title {
-                font-size: 1.1rem;
-            }
-
-            .product-header,
-            .seller-section,
-            .description-section {
-                padding: 1rem;
-            }
-
-            .related-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-                gap: 0.75rem;
-            }
-
-            .action-buttons {
-                gap: 0.75rem;
-            }
-
-            .quantity-controls {
-                gap: 0.5rem;
-            }
-
-            .quantity-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 0.9rem;
-            }
-
-            .quantity-input {
-                width: 55px;
-                height: 36px;
-                font-size: 0.9rem;
-            }
-
-            .quantity-label {
-                font-size: 0.9rem;
-            }
-
-            .quantity-available {
-                font-size: 0.8rem;
-            }
-
-            .meta-item {
-                font-size: 0.8rem;
-            }
-
-            .product-description {
-                font-size: 0.9rem;
-                line-height: 1.6;
-            }
-
-            .seller-name {
-                font-size: 1rem;
-            }
-
-            .seller-badge {
-                font-size: 0.8rem;
-            }
-
-            .btn {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.85rem;
-            }
-
-            .cart-badge {
-                width: 20px;
-                height: 20px;
-                font-size: 0.6rem;
-            }
-
-            .related-name {
-                font-size: 0.95rem;
-                line-height: 1.3;
-            }
-
-            .related-price {
-                font-size: 1.1rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .product-container {
-                gap: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/view_product.css">
+    <link rel="stylesheet" href="css/reservation_modal.css">
 </head>
 <body>
     <!-- Header -->
@@ -904,7 +98,7 @@
                         <button class="btn-add-cart" onclick="addToCart()" id="addToCartBtn">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
-                        <button class="btn-reserve" onclick="reserveProduct()" id="reserveBtn">
+                        <button class="btn-reserve" onclick="openReservationModal()" id="reserveBtn">
                             <i class="fas fa-bookmark"></i> Reserve
                         </button>
                     </div>
@@ -947,6 +141,276 @@
         </section>
     </div>
 
+    <!-- Reservation Modal -->
+    <div id="reservationModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeReservationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Progress Steps -->
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Details</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Delivery</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Payment</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Confirm</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Reservation Details -->
+            <div class="step-content" id="step1" style="display: block;">
+                <h2 class="modal-title">
+                    <i class="fas fa-clipboard-list"></i> Reservation Details
+                </h2>
+                
+                <div class="form-group">
+                    <label for="reservationDate">
+                        <i class="fas fa-calendar"></i> Reservation Date & Time
+                    </label>
+                    <input type="datetime-local" id="reservationDate" class="form-input" required>
+                    <small class="form-help">Select when you want to pick up or receive your order</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="numberOfPeople">
+                        <i class="fas fa-users"></i> Number of People
+                    </label>
+                    <input type="number" id="numberOfPeople" class="form-input" min="1" value="1" required>
+                    <small class="form-help">How many people will this order serve?</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="reservationQuantity">
+                        <i class="fas fa-box"></i> Quantity
+                    </label>
+                    <div class="quantity-control-modal">
+                        <button type="button" class="qty-btn" onclick="decreaseModalQuantity()">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" id="reservationQuantity" class="form-input qty-input" min="1" value="1" readonly>
+                        <button type="button" class="qty-btn" onclick="increaseModalQuantity()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <small class="form-help">Available: <span id="modalAvailableStock">0</span> items</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialRequests">
+                        <i class="fas fa-comment"></i> Special Requests (Optional)
+                    </label>
+                    <textarea id="specialRequests" class="form-input" rows="3" placeholder="Any special instructions or dietary requirements?"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal btn-secondary" onclick="closeReservationModal()">Cancel</button>
+                    <button type="button" class="btn-modal btn-primary" onclick="nextStep(2)">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Delivery Method -->
+            <div class="step-content" id="step2" style="display: none;">
+                <h2 class="modal-title">
+                    <i class="fas fa-truck"></i> Delivery Method
+                </h2>
+
+                <div class="delivery-options">
+                    <div class="delivery-option" onclick="selectDeliveryMethod('pickup')">
+                        <input type="radio" name="deliveryMethod" id="pickupOption" value="pickup">
+                        <label for="pickupOption" class="delivery-label">
+                            <div class="delivery-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="delivery-info">
+                                <div class="delivery-title">Pick Up</div>
+                                <div class="delivery-desc">Collect from store location</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="delivery-option" onclick="selectDeliveryMethod('delivery')">
+                        <input type="radio" name="deliveryMethod" id="deliveryOption" value="delivery">
+                        <label for="deliveryOption" class="delivery-label">
+                            <div class="delivery-icon">
+                                <i class="fas fa-motorcycle"></i>
+                            </div>
+                            <div class="delivery-info">
+                                <div class="delivery-title">Delivery</div>
+                                <div class="delivery-desc">We'll deliver to your address</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="deliveryAddressSection" class="form-group" style="display: none;">
+                    <label for="deliveryAddress">
+                        <i class="fas fa-map-marker-alt"></i> Delivery Address
+                    </label>
+                    <textarea id="deliveryAddress" class="form-input" rows="3" placeholder="Enter your complete delivery address"></textarea>
+                </div>
+
+                <div id="pickupLocationSection" class="info-box" style="display: none;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <strong>Pickup Location:</strong>
+                        <p id="pickupLocation">Store address will be shown here</p>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal btn-secondary" onclick="prevStep(1)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn-modal btn-primary" onclick="nextStep(3)">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Payment Method -->
+            <div class="step-content" id="step3" style="display: none;">
+                <h2 class="modal-title">
+                    <i class="fas fa-credit-card"></i> Payment Method
+                </h2>
+
+                <div class="payment-options">
+                    <div class="payment-option" onclick="selectPaymentMethod('cash')">
+                        <input type="radio" name="paymentMethod" id="cashOption" value="cash" checked>
+                        <label for="cashOption" class="payment-label">
+                            <div class="payment-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="payment-info">
+                                <div class="payment-title">Cash on Delivery/Pickup</div>
+                                <div class="payment-desc">Pay when you receive your order</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="payment-option" onclick="selectPaymentMethod('gcash')">
+                        <input type="radio" name="paymentMethod" id="gcashOption" value="gcash">
+                        <label for="gcashOption" class="payment-label">
+                            <div class="payment-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="payment-info">
+                                <div class="payment-title">GCash</div>
+                                <div class="payment-desc">Pay via GCash mobile wallet</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="payment-option" onclick="selectPaymentMethod('card')">
+                        <input type="radio" name="paymentMethod" id="cardOption" value="card">
+                        <label for="cardOption" class="payment-label">
+                            <div class="payment-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="payment-info">
+                                <div class="payment-title">Credit/Debit Card</div>
+                                <div class="payment-desc">Pay securely with your card</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal btn-secondary" onclick="prevStep(2)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn-modal btn-primary" onclick="nextStep(4)">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Confirmation -->
+            <div class="step-content" id="step4" style="display: none;">
+                <h2 class="modal-title">
+                    <i class="fas fa-check-circle"></i> Confirm Reservation
+                </h2>
+
+                <div class="confirmation-summary">
+                    <div class="summary-section">
+                        <h3><i class="fas fa-box"></i> Product Details</h3>
+                        <div class="summary-item">
+                            <span>Product:</span>
+                            <strong id="confirmProductName">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Quantity:</span>
+                            <strong id="confirmQuantity">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Unit Price:</span>
+                            <strong id="confirmUnitPrice">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-section">
+                        <h3><i class="fas fa-calendar"></i> Reservation Info</h3>
+                        <div class="summary-item">
+                            <span>Date & Time:</span>
+                            <strong id="confirmDate">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Number of People:</span>
+                            <strong id="confirmPeople">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-section">
+                        <h3><i class="fas fa-truck"></i> Delivery Details</h3>
+                        <div class="summary-item">
+                            <span>Method:</span>
+                            <strong id="confirmDeliveryMethod">-</strong>
+                        </div>
+                        <div class="summary-item" id="confirmAddressItem" style="display: none;">
+                            <span>Address:</span>
+                            <strong id="confirmAddress">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-section">
+                        <h3><i class="fas fa-credit-card"></i> Payment</h3>
+                        <div class="summary-item">
+                            <span>Method:</span>
+                            <strong id="confirmPaymentMethod">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-total">
+                        <span>Total Amount:</span>
+                        <strong id="confirmTotal">₱0.00</strong>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal btn-secondary" onclick="prevStep(3)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn-modal btn-success" onclick="submitReservation()">
+                        <i class="fas fa-check"></i> Confirm Reservation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single JavaScript file with all functionality -->
     <script src="js/view_product.js"></script>
 </body>
 </html>
