@@ -1,6 +1,6 @@
 const API_BASE_URL = 'https://six7backend.onrender.com/api';
 let currentProduct = null;
-let cart = [];
+let cart = { items: [], subtotal: 0, totalItems: 0 };
 let authToken = null;
 
 // Get product ID from URL
@@ -11,8 +11,8 @@ const productId = urlParams.get('id');
 document.addEventListener('DOMContentLoaded', async function() {
     authToken = localStorage.getItem('access_token');
     
-    // Load cart from localStorage
-    loadCart();
+    // Load cart from backend API
+    await loadCart();
     
     // Load customer name
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -28,6 +28,53 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     await loadProduct();
 });
+
+// API Helper Function
+async function apiCall(endpoint, method = 'GET', body = null) {
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        }
+    };
+    
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                logout();
+                return null;
+            }
+            const data = await response.json();
+            throw new Error(data.detail || 'API request failed');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        showToast('Error: ' + error.message, 'danger');
+        return null;
+    }
+}
+
+// Load Cart from Backend
+async function loadCart() {
+    const data = await apiCall('/cart-items/my-cart');
+    if (data) {
+        cart = data;
+        updateCartBadge();
+    }
+}
+
+function updateCartBadge() {
+    document.getElementById('cartCount').textContent = cart.totalItems || 0;
+}
 
 // Load Product Details
 async function loadProduct() {
@@ -201,27 +248,8 @@ function decreaseQuantity() {
     }
 }
 
-// Cart Functions
-function loadCart() {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-        cart = JSON.parse(savedCart);
-        updateCartBadge();
-    }
-}
-
-function saveCart() {
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartBadge();
-}
-
-function updateCartBadge() {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById('cartCount').textContent = totalItems;
-}
-
-// Add to Cart
-function addToCart() {
+// Add to Cart - UPDATED TO USE BACKEND API
+async function addToCart() {
     if (!currentProduct) {
         showToast('Product not loaded', 'danger');
         return;
@@ -235,43 +263,34 @@ function addToCart() {
         return;
     }
     
-    const existingItem = cart.find(item => item.productId === currentProduct.productId);
+    // Call backend API to add to cart
+    const data = await apiCall('/cart-items/', 'POST', {
+        productId: currentProduct.productId,
+        quantity: quantity
+    });
     
-    if (existingItem) {
-        const newQuantity = existingItem.quantity + quantity;
-        
-        if (newQuantity > availableStock) {
-            showToast('Cannot add more - insufficient stock', 'warning');
-            return;
-        }
-        
-        existingItem.quantity = newQuantity;
-        showToast(`Updated quantity to ${newQuantity}`, 'success');
-    } else {
-        cart.push({
-            productId: currentProduct.productId,
-            productName: currentProduct.productName,
-            unitPrice: currentProduct.unitPrice,
-            quantity: quantity,
-            imageUrl: currentProduct.imageUrl,
-            maxStock: availableStock
-        });
+    if (data) {
         showToast(`${quantity} item(s) added to cart`, 'success');
+        await loadCart(); // Reload cart from backend
+        
+        // Reset quantity to 1
+        document.getElementById('quantity').value = 1;
     }
-    
-    saveCart();
-    
-    // Reset quantity to 1
-    document.getElementById('quantity').value = 1;
 }
 
-// Buy Now
-function buyNow() {
-    addToCart();
+// Buy Now - UPDATED TO USE BACKEND API
+async function buyNow() {
+    if (!currentProduct) {
+        showToast('Product not loaded', 'danger');
+        return;
+    }
     
-    // Redirect to cart after a short delay
+    // Add product to cart via backend API
+    await addToCart();
+    
+    // Redirect to checkout page after a short delay
     setTimeout(() => {
-        window.location.href = 'customer_dashboard.html#cart';
+        window.location.href = '../order/order.html';
     }, 500);
 }
 
@@ -287,6 +306,7 @@ function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
     localStorage.removeItem('user_type');
+    // Remove old localStorage cart (if it exists)
     localStorage.removeItem('cart');
     window.location.href = '../auth/login.html';
 }

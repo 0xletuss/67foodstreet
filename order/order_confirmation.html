@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - E-Commerce</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .confirmation-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .success-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .order-details {
+            padding: 2rem;
+        }
+
+        .order-id {
+            background: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .order-id label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-id strong {
+            color: #1f2937;
+            font-size: 1.5rem;
+        }
+
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h3 {
+            color: #1f2937;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .order-items {
+            margin-top: 1rem;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .order-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-price {
+            color: #6366f1;
+            font-weight: 500;
+        }
+
+        .item-quantity {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-confirmed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #6366f1;
+            border: 2px solid #6366f1;
+        }
+
+        .btn-secondary:hover {
+            background: #eef2ff;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .success-header {
+                padding: 2rem 1rem;
+            }
+
+            .success-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="confirmation-card">
+            <div class="success-header">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h1>Order Placed Successfully!</h1>
+                <p>Thank you for your purchase</p>
+            </div>
+
+            <div class="order-details">
+                <div class="order-id">
+                    <label>Your Order ID</label>
+                    <strong id="orderIdDisplay">Loading...</strong>
+                </div>
+
+                <!-- Order Information -->
+                <div class="detail-section">
+                    <h3>
+                        <i class="fas fa-info-circle"></i>
+                        Order Information
+                    </h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Date:</span>
+                        <span class="detail-value" id="orderDate">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value" id="orderStatus">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Type:</span>
+                        <span class="detail-value" id="orderType">-</span>
+                    </div>
+                    <div class="detail-row" id="deliveryAddressRow" style="display: none;">
+                        <span class="detail-label">Delivery Address:</span>
+                        <span class="detail-value" id="deliveryAddress">-</span>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="detail-section">
+                    <h3>
+                        <i class="fas fa-box"></i>
+                        Order Items
+                    </h3>
+                    <div class="order-items" id="orderItems">
+                        <!-- Items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="detail-section">
+                    <h3>
+                        <i class="fas fa-credit-card"></i>
+                        Payment Summary
+                    </h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method:</span>
+                        <span class="detail-value" id="paymentMethod">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Status:</span>
+                        <span class="detail-value" id="paymentStatus">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Amount:</span>
+                        <span class="detail-value" style="color: #6366f1; font-size: 1.25rem;" id="totalAmount">₱0.00</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="customer_dashboard.html" class="btn btn-primary">
+                        <i class="fas fa-home"></i>
+                        Back to Dashboard
+                    </a>
+                    <a href="customer_dashboard.html#orders" class="btn btn-secondary">
+                        <i class="fas fa-list"></i>
+                        View My Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading order details...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://six7backend.onrender.com/api';
+        let authToken = null;
+
+        // Get order ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            authToken = localStorage.getItem('access_token');
+            
+            if (!authToken) {
+                window.location.href = '../auth/login.html';
+                return;
+            }
+            
+            if (!orderId) {
+                showToast('No order ID found', 'warning');
+                setTimeout(() => window.location.href = 'customer_dashboard.html', 2000);
+                return;
+            }
+            
+            loadOrderDetails();
+        });
+
+        // Load Order Details
+        async function loadOrderDetails() {
+            showLoading(true);
+            
+            try {
+                // Fetch order details
+                const orderResponse = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!orderResponse.ok) {
+                    throw new Error('Failed to load order details');
+                }
+                
+                const orderData = await orderResponse.json();
+                const order = orderData.order;
+                
+                // Fetch payment details
+                const paymentResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                let payment = null;
+                if (paymentResponse.ok) {
+                    const paymentData = await paymentResponse.json();
+                    payment = paymentData.payment;
+                }
+                
+                displayOrderDetails(order, payment);
+                
+            } catch (error) {
+                console.error('Error loading order:', error);
+                showToast('Error loading order details', 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Display Order Details
+        function displayOrderDetails(order, payment) {
+            // Order ID
+            document.getElementById('orderIdDisplay').textContent = `#${order.orderId}`;
+            
+            // Order Date
+            const orderDate = new Date(order.orderDate);
+            document.getElementById('orderDate').textContent = orderDate.toLocaleString();
+            
+            // Order Status
+            const statusBadge = `<span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>`;
+            document.getElementById('orderStatus').innerHTML = statusBadge;
+            
+            // Order Type
+            document.getElementById('orderType').textContent = order.type;
+            
+            // Delivery Address (if applicable)
+            if (order.type === 'Delivery' && order.deliveryAddress) {
+                document.getElementById('deliveryAddressRow').style.display = 'flex';
+                document.getElementById('deliveryAddress').textContent = order.deliveryAddress;
+            }
+            
+            // Order Items
+            const itemsContainer = document.getElementById('orderItems');
+            itemsContainer.innerHTML = order.items.map(item => `
+                <div class="order-item">
+                    <img src="${item.productImage || 'https://via.placeholder.com/80?text=No+Image'}" 
+                         alt="${item.productName}">
+                    <div class="item-details">
+                        <div class="item-name">${item.productName}</div>
+                        <div class="item-price">₱${parseFloat(item.unitPrice).toFixed(2)}</div>
+                        <div class="item-quantity">Quantity: ${item.quantity} × ₱${parseFloat(item.unitPrice).toFixed(2)} = ₱${parseFloat(item.subtotal).toFixed(2)}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Payment Information
+            if (payment) {
+                document.getElementById('paymentMethod').textContent = payment.paymentMethod;
+                document.getElementById('paymentStatus').innerHTML = `<span class="status-badge status-confirmed">${payment.status}</span>`;
+            } else {
+                document.getElementById('paymentMethod').textContent = 'Pending';
+                document.getElementById('paymentStatus').innerHTML = `<span class="status-badge status-pending">Pending</span>`;
+            }
+            
+            // Total Amount
+            document.getElementById('totalAmount').textContent = `₱${parseFloat(order.totalAmount).toFixed(2)}`;
+        }
+
+        // Loading Overlay
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'info') {
+            const bgColor = {
+                'success': '#dcfce7',
+                'error': '#fee2e2',
+                'warning': '#fef3c7',
+                'info': '#dbeafe',
+                'danger': '#fee2e2'
+            }[type] || '#dbeafe';
+            
+            const textColor = {
+                'success': '#166534',
+                'error': '#991b1b',
+                'warning': '#92400e',
+                'info': '#1e40af',
+                'danger': '#991b1b'
+            }[type] || '#1e40af';
+            
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 1rem;
+                right: 1rem;
+                background: ${bgColor};
+                color: ${textColor};
+                padding: 1rem 1.5rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
