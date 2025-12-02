@@ -1,6 +1,6 @@
 // auth.js - Authentication Handler
 // Configuration
-const API_BASE_URL = 'https://six7backend.onrender.com/api/auth'; // Updated to Render backend
+const API_BASE_URL = 'https://six7backend.onrender.com/api/auth';
 
 // Utility function to show messages
 function showMessage(elementId, message, isError = false) {
@@ -50,23 +50,20 @@ function logout() {
 
 // Redirect based on user type
 function redirectToDashboard(userType) {
-    // All users go to the same dashboard for now
-   // window.location.href = '/dashboard/dashboard.html';
-    
-    // If you want different dashboards later, uncomment and create separate files:
+    // Use relative paths to avoid issues
     switch(userType) {
         case 'customer':
-            window.location.href = '/dashboard/customer_dashboard.html';
-             break;
-         case 'seller':
-             window.location.href = '/dashboard/seller_dashboard.html';
-             break;
-         case 'admin':
-             window.location.href = '/dashboard/admin_dashboard.html';
-             break;
-         default:
-             window.location.href = '/index.html';
-     }
+            window.location.href = '../dashboard/customer_dashboard.html';
+            break;
+        case 'seller':
+            window.location.href = '../dashboard/seller_dashboard.html';
+            break;
+        case 'admin':
+            window.location.href = '../dashboard/admin_dashboard.html';
+            break;
+        default:
+            window.location.href = '../index.html';
+    }
 }
 
 // ==================== CUSTOMER REGISTRATION ====================
@@ -196,8 +193,8 @@ function handleSellerRegisterForm() {
         const result = await registerSeller(formData);
 
         if (result.success) {
-            showMessage('message', 'Registration successful! Your account is pending admin verification.');
-            setTimeout(() => window.location.href = 'login.html', 3000);
+            showMessage('message', 'Registration successful! Redirecting to dashboard...');
+            setTimeout(() => redirectToDashboard('seller'), 2000);
         } else {
             showMessage('message', result.error, true);
             submitBtn.disabled = false;
@@ -377,12 +374,8 @@ document.addEventListener('DOMContentLoaded', function() {
         handleLoginForm();
     }
 
-    // If user is already logged in and on login/register pages, redirect
-    if (isLoggedIn() && (window.location.pathname.includes('login') || 
-                         window.location.pathname.includes('register'))) {
-        const userType = localStorage.getItem('user_type');
-        redirectToDashboard(userType);
-    }
+    // REMOVED THE AUTO-REDIRECT CHECK TO PREVENT LOOP
+    // Only redirect if explicitly logging in or registering
 });
 
 // Export functions for use in other scripts

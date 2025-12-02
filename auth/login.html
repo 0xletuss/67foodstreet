@@ -265,5 +265,50 @@
             }
         });
     </script>
+    <script>
+    // Toggle password visibility
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.querySelector('.toggle-password');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.textContent = '👁️';
+        }
+    }
+
+    // Update form based on user type
+    document.getElementById('userType').addEventListener('change', function() {
+        const label = document.getElementById('identifierLabel');
+        const input = document.getElementById('loginIdentifier');
+        
+        if (this.value === 'customer') {
+            label.textContent = 'Email';
+            input.type = 'email';
+            input.placeholder = 'Enter your email';
+        } else {
+            label.textContent = 'Username';
+            input.type = 'text';
+            input.placeholder = 'Enter your username';
+        }
+    });
+
+    // Debug: Override form submission to log data
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const userType = document.getElementById('userType').value;
+        const identifier = document.getElementById('loginIdentifier').value;
+        const password = document.getElementById('password').value;
+        
+        console.log('=== LOGIN ATTEMPT ===');
+        console.log('User Type:', userType);
+        console.log('Identifier:', identifier);
+        console.log('Password Length:', password.length);
+        console.log('Password:', password); // Remove this after debugging for security
+        console.log('====================');
+    });
+</script>
 </body>
 </html>

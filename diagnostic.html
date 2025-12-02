@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Diagnostic Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .test-result {
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .test-result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .actions {
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Authentication Diagnostic Tool</h1>
+        <p class="subtitle">This tool helps diagnose authentication issues with your seller dashboard</p>
+
+        <!-- Current Auth State -->
+        <div class="section">
+            <h2>📋 Current Authentication State</h2>
+            <div id="authState"></div>
+        </div>
+
+        <!-- Test Endpoints -->
+        <div class="section">
+            <h2>🧪 Test API Endpoints</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #666;">
+                Click these buttons to test if your authentication is working:
+            </p>
+            <div class="actions">
+                <button onclick="testEndpoint('/products')">Test /products</button>
+                <button onclick="testEndpoint('/orders')">Test /orders</button>
+                <button onclick="testEndpoint('/revenue?period=month')">Test /revenue</button>
+                <button onclick="testEndpoint('/analytics')">Test /analytics</button>
+            </div>
+            <div id="testResults"></div>
+        </div>
+
+        <!-- Raw Token Info -->
+        <div class="section">
+            <h2>🔑 Token Information</h2>
+            <div id="tokenInfo"></div>
+            <button onclick="copyToken()">Copy Full Token</button>
+            <button onclick="testTokenFormat()">Test Token Format</button>
+        </div>
+
+        <!-- Login Test -->
+        <div class="section">
+            <h2>🔐 Test Fresh Login</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #666;">
+                Try logging in again to get a fresh token:
+            </p>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="testUsername" placeholder="Username" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 200px; margin-right: 10px;">
+                <input type="password" id="testPassword" placeholder="Password" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 200px; margin-right: 10px;">
+                <button onclick="testLogin()">Test Login</button>
+            </div>
+            <div id="loginTestResults"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="section">
+            <h2>⚙️ Actions</h2>
+            <button onclick="location.reload()">Refresh Diagnostic</button>
+            <button class="danger" onclick="clearAuth()">Clear All Auth Data</button>
+            <button onclick="goToLogin()">Go to Login Page</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://six7backend.onrender.com/api';
+
+        // Load and display current auth state
+        function loadAuthState() {
+            const token = localStorage.getItem('access_token');
+            const userType = localStorage.getItem('user_type');
+            const user = localStorage.getItem('user');
+
+            let html = '';
+            
+            // Token status
+            html += `<div class="info-row">
+                <span class="label">Token Status:</span>
+                <span class="value">
+                    <span class="status ${token ? 'success' : 'error'}">
+                        ${token ? 'EXISTS' : 'MISSING'}
+                    </span>
+                </span>
+            </div>`;
+
+            // User type
+            html += `<div class="info-row">
+                <span class="label">User Type:</span>
+                <span class="value">
+                    <span class="status ${userType === 'seller' ? 'success' : 'warning'}">
+                        ${userType || 'NOT SET'}
+                    </span>
+                </span>
+            </div>`;
+
+            // Token preview
+            if (token) {
+                html += `<div class="info-row">
+                    <span class="label">Token Preview:</span>
+                    <span class="value">${token.substring(0, 30)}...</span>
+                </div>`;
+                
+                html += `<div class="info-row">
+                    <span class="label">Token Length:</span>
+                    <span class="value">${token.length} characters</span>
+                </div>`;
+            }
+
+            // User data
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    html += `<div class="info-row">
+                        <span class="label">User Data:</span>
+                        <span class="value">
+                            ${userData.storeName || userData.username || 'Unknown'}
+                        </span>
+                    </div>`;
+                } catch (e) {
+                    html += `<div class="info-row">
+                        <span class="label">User Data:</span>
+                        <span class="value"><span class="status error">INVALID JSON</span></span>
+                    </div>`;
+                }
+            }
+
+            document.getElementById('authState').innerHTML = html;
+        }
+
+        // Display token info
+        function displayTokenInfo() {
+            const token = localStorage.getItem('access_token');
+            let html = '';
+
+            if (!token) {
+                html = '<p style="color: #dc3545;">No token found in localStorage</p>';
+            } else {
+                html = `
+                    <div class="info-row">
+                        <span class="label">Full Token Length:</span>
+                        <span class="value">${token.length} chars</span>
+                    </div>
+                    <div class="code-block">${token}</div>
+                `;
+                
+                // Try to decode if it's a JWT
+                try {
+                    const parts = token.split('.');
+                    if (parts.length === 3) {
+                        const payload = JSON.parse(atob(parts[1]));
+                        html += `<div style="margin-top: 15px;">
+                            <strong>JWT Payload:</strong>
+                            <div class="code-block">${JSON.stringify(payload, null, 2)}</div>
+                        </div>`;
+                    }
+                } catch (e) {
+                    html += '<p style="margin-top: 10px; color: #856404;">Token is not a valid JWT format</p>';
+                }
+            }
+
+            document.getElementById('tokenInfo').innerHTML = html;
+        }
+
+        // Test an API endpoint
+        async function testEndpoint(endpoint) {
+            const resultsDiv = document.getElementById('testResults');
+            const token = localStorage.getItem('access_token');
+
+            if (!token) {
+                resultsDiv.innerHTML = '<div class="test-result error">❌ No token found. Please login first.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = `<div class="test-result">Testing ${endpoint}<span class="loading"></span></div>`;
+
+            try {
+                const response = await fetch(`${API_BASE}/seller${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="test-result success">
+                            ✅ SUCCESS: ${endpoint}
+                            <div class="code-block">${JSON.stringify(data, null, 2)}</div>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="test-result error">
+                            ❌ FAILED: ${endpoint}<br>
+                            Status: ${response.status} ${response.statusText}<br>
+                            <div class="code-block">${JSON.stringify(data, null, 2)}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        ❌ ERROR: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test login
+        async function testLogin() {
+            const username = document.getElementById('testUsername').value;
+            const password = document.getElementById('testPassword').value;
+            const resultsDiv = document.getElementById('loginTestResults');
+
+            if (!username || !password) {
+                resultsDiv.innerHTML = '<div class="test-result error">Please enter both username and password</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="test-result">Logging in<span class="loading"></span></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/seller/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save the new token
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.seller));
+                    localStorage.setItem('user_type', 'seller');
+
+                    resultsDiv.innerHTML = `
+                        <div class="test-result success">
+                            ✅ Login Successful!<br>
+                            New token saved. Refresh the page to see updated info.
+                            <div class="code-block">${JSON.stringify(data, null, 2)}</div>
+                        </div>
+                    `;
+
+                    // Refresh the page after 2 seconds
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="test-result error">
+                            ❌ Login Failed<br>
+                            Status: ${response.status}<br>
+                            <div class="code-block">${JSON.stringify(data, null, 2)}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        ❌ ERROR: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Copy token to clipboard
+        function copyToken() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                navigator.clipboard.writeText(token);
+                alert('Token copied to clipboard!');
+            } else {
+                alert('No token found!');
+            }
+        }
+
+        // Test token format
+        function testTokenFormat() {
+            const token = localStorage.getItem('access_token');
+            const resultsDiv = document.getElementById('testResults');
+            
+            if (!token) {
+                resultsDiv.innerHTML = '<div class="test-result error">No token to test</div>';
+                return;
+            }
+
+            let result = '<div class="test-result success">';
+            result += `<strong>Token Format Analysis:</strong><br><br>`;
+            result += `Length: ${token.length} characters<br>`;
+            result += `Starts with: ${token.substring(0, 10)}...<br>`;
+            
+            // Check if JWT
+            const parts = token.split('.');
+            if (parts.length === 3) {
+                result += `Format: JWT (3 parts) ✅<br>`;
+            } else {
+                result += `Format: Not JWT (${parts.length} parts) ⚠️<br>`;
+            }
+
+            result += '</div>';
+            resultsDiv.innerHTML = result;
+        }
+
+        // Clear auth data
+        function clearAuth() {
+            if (confirm('This will clear all authentication data. Continue?')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('user_type');
+                location.reload();
+            }
+        }
+
+        // Go to login
+        function goToLogin() {
+            window.location.href = '../auth/login.html';
+        }
+
+        // Initialize
+        window.onload = function() {
+            loadAuthState();
+            displayTokenInfo();
+        };
+    </script>
+</body>
+</html>
