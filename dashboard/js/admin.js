@@ -43,8 +43,8 @@ document.querySelectorAll('.nav-link').forEach(link => {
     // Close mobile menu
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('menuOverlay');
-    sidebar.classList.remove('active');
-    overlay.classList.remove('active');
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
     
     // Load data based on section
     switch(sectionId) {
@@ -122,6 +122,9 @@ async function loadCustomers() {
           <button class="btn btn-sm btn-warning" onclick="toggleCustomer(${c.customerId}, ${!c.isActive})">
             ${c.isActive ? 'Deactivate' : 'Activate'}
           </button>
+          <button class="btn btn-sm btn-info" onclick="showChangePasswordModal('customer', ${c.customerId}, '${c.customerName.replace(/'/g, "\\'")}')">
+            <i class="fas fa-key"></i> Password
+          </button>
         </td>
       </tr>
     `).join('');
@@ -156,6 +159,9 @@ async function loadSellers() {
           <button class="btn btn-sm btn-warning" onclick="toggleSeller(${s.sellerId}, ${!s.isActive})">
             ${s.isActive ? 'Deactivate' : 'Activate'}
           </button>
+          <button class="btn btn-sm btn-info" onclick="showChangePasswordModal('seller', ${s.sellerId}, '${s.storeName.replace(/'/g, "\\'")}')">
+            <i class="fas fa-key"></i> Password
+          </button>
         </td>
       </tr>
     `).join('');
@@ -171,6 +177,112 @@ window.toggleSeller = async (id, activate) => {
     loadSellers();
   } catch (err) { showToast(err.message, true); }
 };
+
+// ==================== PASSWORD CHANGE FUNCTIONALITY ====================
+
+window.showChangePasswordModal = (userType, userId, userName) => {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('changePasswordModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'changePasswordModal';
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Change Password</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Change password for: <strong id="modalUserName"></strong></p>
+            <form id="changePasswordForm">
+              <input type="hidden" id="modalUserType">
+              <input type="hidden" id="modalUserId">
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword" required minlength="6">
+                <small class="text-muted">Minimum 6 characters</small>
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="changePassword()">Change Password</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Set modal data
+  document.getElementById('modalUserName').textContent = userName;
+  document.getElementById('modalUserType').value = userType;
+  document.getElementById('modalUserId').value = userId;
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+
+  // Show modal using Bootstrap
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+};
+
+window.changePassword = async () => {
+  const userType = document.getElementById('modalUserType').value;
+  const userId = document.getElementById('modalUserId').value;
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+
+  // Validate
+  if (newPassword.length < 6) {
+    showToast('Password must be at least 6 characters', true);
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    showToast('Passwords do not match', true);
+    return;
+  }
+
+  try {
+    const endpoint = userType === 'seller' 
+      ? `${API_BASE}/sellers/${userId}/change-password`
+      : `${API_BASE}/customers/${userId}/change-password`;
+
+    const res = await window.authAPI.fetchWithAuth(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify({ new_password: newPassword })
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to change password');
+    }
+
+    const data = await res.json();
+    showToast(data.message || 'Password changed successfully');
+
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+    modal.hide();
+
+    // Reload the appropriate table
+    if (userType === 'seller') {
+      await loadSellers();
+    } else {
+      await loadCustomers();
+    }
+  } catch (err) {
+    showToast(err.message, true);
+  }
+};
+
+// ==================== END PASSWORD CHANGE ====================
 
 // Pending Sellers
 async function loadPendingSellers() {
@@ -246,7 +358,8 @@ window.toggleProduct = async (id, enable) => {
 document.getElementById('orderStatusFilter')?.addEventListener('change', () => loadOrders());
 
 async function loadOrders() {
-  const status = document.getElementById('orderStatusFilter').value;
+  const statusFilter = document.getElementById('orderStatusFilter');
+  const status = statusFilter ? statusFilter.value : '';
   try {
     const url = status ? `${API_BASE}/orders?status=${status}` : `${API_BASE}/orders`;
     const res = await window.authAPI.fetchWithAuth(url);
@@ -264,3 +377,11 @@ async function loadOrders() {
     `).join('');
   } catch (err) { showToast(err.message, true); }
 }
+
+// Make functions globally available
+window.loadDashboardStats = loadDashboardStats;
+window.loadCustomers = loadCustomers;
+window.loadSellers = loadSellers;
+window.loadPendingSellers = loadPendingSellers;
+window.loadProducts = loadProducts;
+window.loadOrders = loadOrders;
