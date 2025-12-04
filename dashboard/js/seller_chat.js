@@ -158,7 +158,7 @@ async function loadSellerMessages(roomId, silent = false) {
         }
 
         const data = await response.json();
-        displaySellerMessages(data.messages || []);
+        displaySellerMessages(data.messages || [], silent);
         scrollSellerChatToBottom();
     } catch (error) {
         console.error('Error loading messages:', error);
@@ -174,18 +174,20 @@ async function loadSellerMessages(roomId, silent = false) {
 }
 
 // Display messages
-function displaySellerMessages(messages) {
+function displaySellerMessages(messages, silent = false) {
     const container = document.getElementById('sellerChatMessagesContainer');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const currentSellerId = user.sellerId;
 
     if (messages.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 30px; color: #999;">
-                <i class="bi bi-chat-dots" style="font-size: 2rem;"></i>
-                <p style="margin-top: 10px;">No messages yet</p>
-            </div>
-        `;
+        if (!silent) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 30px; color: #999;">
+                    <i class="bi bi-chat-dots" style="font-size: 2rem;"></i>
+                    <p style="margin-top: 10px;">No messages yet</p>
+                </div>
+            `;
+        }
         return;
     }
 

@@ -318,7 +318,7 @@ async function loadMessages(roomId, silent = false) {
         }
 
         const data = await response.json();
-        displayMessages(data.messages || []);
+        displayMessages(data.messages || [], silent);
         scrollToBottom();
         showConnectionStatus(false);
     } catch (error) {
@@ -339,19 +339,21 @@ async function loadMessages(roomId, silent = false) {
     }
 }
 
-function displayMessages(messages) {
+function displayMessages(messages, silent = false) {
     const container = document.getElementById('chatMessagesContainer');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const currentUserId = user.customerId || user.sellerId;
 
     if (messages.length === 0) {
-        container.innerHTML = `
-            <div class="chat-empty">
-                <i class="fas fa-comments"></i>
-                <p>No messages yet</p>
-                <small>Start the conversation!</small>
-            </div>
-        `;
+        if (!silent) {
+            container.innerHTML = `
+                <div class="chat-empty">
+                    <i class="fas fa-comments"></i>
+                    <p>No messages yet</p>
+                    <small>Start the conversation!</small>
+                </div>
+            `;
+        }
         return;
     }
 
