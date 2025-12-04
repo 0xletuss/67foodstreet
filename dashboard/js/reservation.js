@@ -15,8 +15,8 @@ async function loadReservations(status = '') {
             throw new Error('No authentication token found');
         }
 
-        // Use the correct seller endpoint for all reservations
-        let endpoint = status ? `/orders/reservations/all?status=${status}` : '/orders/reservations/all';
+        // FIXED: Use the correct seller endpoint
+        let endpoint = status ? `/seller/reservations?status=${status}` : '/seller/reservations';
         
         let response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'GET',
@@ -107,7 +107,11 @@ function displayReservations(reservations) {
             <div class="order-flashcard-body">
                 <div class="order-meta-item">
                     <span class="label">Customer</span>
-                    <span class="value">${r.customerName || r.customer_name || 'Unknown'}</span>
+                    <span class="value">${r.customerName || 'Unknown'}</span>
+                </div>
+                <div class="order-meta-item">
+                    <span class="label">Email</span>
+                    <span class="value">${r.email || 'N/A'}</span>
                 </div>
                 <div class="order-meta-item">
                     <span class="label">Date</span>
@@ -119,12 +123,12 @@ function displayReservations(reservations) {
                 </div>
                 <div class="order-meta-item">
                     <span class="label">People</span>
-                    <span class="value">${r.numberOfPeople || r.number_of_people || 0} person${(r.numberOfPeople || r.number_of_people) !== 1 ? 's' : ''}</span>
+                    <span class="value">${r.numberOfPeople || 0} person${r.numberOfPeople !== 1 ? 's' : ''}</span>
                 </div>
-                ${(r.specialRequests || r.special_requests) ? `
+                ${r.specialRequests ? `
                 <div class="order-meta-item">
                     <span class="label">Requests</span>
-                    <span class="value" style="font-size: 0.85rem; color: #666;">${(r.specialRequests || r.special_requests).substring(0, 50)}${(r.specialRequests || r.special_requests).length > 50 ? '...' : ''}</span>
+                    <span class="value" style="font-size: 0.85rem; color: #666;">${r.specialRequests.substring(0, 50)}${r.specialRequests.length > 50 ? '...' : ''}</span>
                 </div>
                 ` : ''}
             </div>
@@ -135,10 +139,9 @@ function displayReservations(reservations) {
                 ${!isCancelled ? `
                 <select class="form-select form-select-sm" onchange="updateReservationStatus(${r.reservationId}, this.value)" style="flex: 1;">
                     <option value="">Change Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="Confirmed" ${status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                    <option value="Cancelled" ${status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                 </select>
                 ` : '<span class="text-muted" style="flex: 1; text-align: center; font-size: 0.85rem;">Cancelled</span>'}
             </div>
@@ -154,9 +157,7 @@ function getReservationStatusBadgeClass(status) {
     const classes = {
         'pending': 'bg-warning',
         'confirmed': 'bg-success',
-        'completed': 'bg-info',
-        'cancelled': 'bg-danger',
-        'no-show': 'bg-secondary'
+        'cancelled': 'bg-danger'
     };
     return classes[statusLower] || 'bg-secondary';
 }
@@ -166,6 +167,7 @@ async function updateReservationStatus(reservationId, newStatus) {
     if (!newStatus) return;
     
     const select = event.target;
+    const originalValue = select.value;
     select.disabled = true;
     
     try {
@@ -174,8 +176,8 @@ async function updateReservationStatus(reservationId, newStatus) {
             throw new Error('No authentication token found');
         }
 
-        // Use the correct update status endpoint
-        const endpoint = `/orders/reservations/${reservationId}/update-status`;
+        // FIXED: Use the correct seller endpoint
+        const endpoint = `/seller/reservations/${reservationId}/status`;
         
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'PUT',
@@ -206,7 +208,7 @@ async function updateReservationStatus(reservationId, newStatus) {
             notify('Error updating reservation: ' + error.message, 'error');
         }
         select.disabled = false;
-        select.value = '';
+        select.value = originalValue;
     }
 }
 
@@ -218,8 +220,8 @@ async function viewReservationDetails(reservationId) {
             throw new Error('No authentication token found');
         }
 
-        // Use the correct endpoint to get single reservation
-        const endpoint = `/orders/reservations/${reservationId}`;
+        // FIXED: Use the correct seller endpoint
+        const endpoint = `/seller/reservations/${reservationId}`;
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'GET',
             headers: {
@@ -232,7 +234,8 @@ async function viewReservationDetails(reservationId) {
             throw new Error('Failed to fetch reservation details');
         }
         
-        const reservation = await response.json();
+        const data = await response.json();
+        const reservation = data.reservation;
         
         if (!reservation) {
             throw new Error('Reservation not found');
@@ -251,26 +254,27 @@ async function viewReservationDetails(reservationId) {
                     <p><strong>Status:</strong> <span class="badge ${statusClass}">${status}</span></p>
                     <p><strong>Date:</strong> ${reservationDate}</p>
                     <p><strong>Time:</strong> ${reservationTime}</p>
-                    <p><strong>Number of People:</strong> ${reservation.numberOfPeople || reservation.number_of_people}</p>
+                    <p><strong>Number of People:</strong> ${reservation.numberOfPeople}</p>
                 </div>
                 <div class="col-md-6">
                     <h6 class="mb-3"><i class="bi bi-person"></i> Customer Information</h6>
-                    <p><strong>Customer Name:</strong> ${reservation.customerName || reservation.customer_name || 'N/A'}</p>
-                    ${reservation.customerEmail || reservation.customer_email ? `<p><strong>Email:</strong> ${reservation.customerEmail || reservation.customer_email}</p>` : ''}
-                    ${reservation.customerPhone || reservation.customer_phone ? `<p><strong>Phone:</strong> ${reservation.customerPhone || reservation.customer_phone}</p>` : ''}
+                    <p><strong>Customer Name:</strong> ${reservation.customerName || 'N/A'}</p>
+                    ${reservation.email ? `<p><strong>Email:</strong> ${reservation.email}</p>` : ''}
+                    ${reservation.phoneNumber ? `<p><strong>Phone:</strong> ${reservation.phoneNumber}</p>` : ''}
+                    ${reservation.address ? `<p><strong>Address:</strong> ${reservation.address}</p>` : ''}
                 </div>
-                ${(reservation.specialRequests || reservation.special_requests) ? `
+                ${reservation.specialRequests ? `
                 <div class="col-md-12 mt-3">
                     <h6 class="mb-3"><i class="bi bi-chat-left-text"></i> Special Requests</h6>
                     <div class="alert alert-info mb-0">
-                        ${reservation.specialRequests || reservation.special_requests}
+                        ${reservation.specialRequests}
                     </div>
                 </div>
                 ` : ''}
-                ${reservation.createdAt || reservation.created_at ? `
+                ${reservation.createdAt ? `
                 <div class="col-md-12 mt-3">
                     <small class="text-muted">
-                        <i class="bi bi-clock"></i> Reserved on: ${new Date(reservation.createdAt || reservation.created_at).toLocaleString()}
+                        <i class="bi bi-clock"></i> Reserved on: ${new Date(reservation.createdAt).toLocaleString()}
                     </small>
                 </div>
                 ` : ''}
