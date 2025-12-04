@@ -87,7 +87,6 @@ function displaySellerChatRooms(rooms) {
                 <div class="chat-last-message">${escapeHtml(room.last_message || 'No messages yet')}</div>
             </div>
             <div class="chat-meta">
-                <div class="chat-time">${formatChatTime(room.last_message_time)}</div>
                 ${room.unread_count > 0 ? `<span class="unread-badge">${room.unread_count}</span>` : ''}
             </div>
         </div>
@@ -103,8 +102,16 @@ async function openSellerChatRoom(roomId, customerId, customerName) {
     currentCustomerName = customerName;
 
     // Update UI
-    document.getElementById('sellerChatList').style.display = 'none';
-    document.getElementById('sellerChatMessages').style.display = 'flex';
+    const chatSidebar = document.getElementById('sellerChatList').parentElement;
+    const chatMain = document.getElementById('sellerChatMessages');
+    
+    // Hide sidebar and show messages on mobile
+    if (window.innerWidth <= 768) {
+        chatSidebar.style.display = 'none';
+        chatMain.classList.add('active');
+    }
+    
+    chatMain.style.display = 'flex';
     document.getElementById('sellerChatCustomerName').textContent = customerName;
     document.getElementById('sellerChatBackBtn').style.display = 'inline-block';
 
@@ -240,8 +247,17 @@ async function sendSellerMessage() {
 
 // Back to chat list
 function backToSellerChatList() {
-    document.getElementById('sellerChatList').style.display = 'block';
-    document.getElementById('sellerChatMessages').style.display = 'none';
+    const chatSidebar = document.getElementById('sellerChatList').parentElement;
+    const chatMain = document.getElementById('sellerChatMessages');
+    
+    // Show sidebar and hide messages on mobile
+    if (window.innerWidth <= 768) {
+        chatSidebar.style.display = 'flex';
+        chatMain.classList.remove('active');
+    }
+    
+    chatSidebar.style.display = 'block';
+    chatMain.style.display = 'none';
     document.getElementById('sellerChatBackBtn').style.display = 'none';
 
     currentChatRoom = null;
