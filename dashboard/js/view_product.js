@@ -2,35 +2,25 @@ const API_BASE_URL = 'https://six7backend.onrender.com/api';
 let currentProduct = null;
 let cart = { items: [], subtotal: 0, totalItems: 0 };
 let authToken = null;
-
-// Reservation Modal Variables
 let currentStep = 1;
 let reservationData = {
-    productId: null,
-    productName: '',
-    unitPrice: 0,
-    quantity: 1,
-    reservationDate: '',
-    numberOfPeople: 1,
-    deliveryMethod: 'pickup',
-    deliveryAddress: '',
-    paymentMethod: 'cash',
-    specialRequests: '',
-    totalAmount: 0
+    productId: null, productName: '', unitPrice: 0, quantity: 1,
+    reservationDate: '', numberOfPeople: 1, deliveryMethod: 'pickup',
+    deliveryAddress: '', paymentMethod: 'cash', specialRequests: '', totalAmount: 0
 };
 
-// Get product ID from URL
+// Chat integration variables
+let currentProductSellerId = null;
+let currentProductSellerName = null;
+
 const urlParams = new URLSearchParams(window.location.search);
 const productId = urlParams.get('id');
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', async function() {
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
     authToken = localStorage.getItem('access_token');
-    
-    // Load cart from backend API
     await loadCart();
     
-    // Load customer name
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.customerName) {
         document.getElementById('customerName').textContent = `Hi, ${user.customerName}!`;
@@ -43,13 +33,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     await loadProduct();
-    
-    // Debug: Check if modal elements exist
-    console.log('Modal element exists:', !!document.getElementById('reservationModal'));
-    console.log('Reserve button exists:', !!document.getElementById('reserveBtn'));
 });
 
-// API Helper Function
+// API Helper
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = {
         method,
@@ -59,9 +45,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         }
     };
     
-    if (body) {
-        options.body = JSON.stringify(body);
-    }
+    if (body) options.body = JSON.stringify(body);
     
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
@@ -83,20 +67,16 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     }
 }
 
-// Load Cart from Backend
+// Load Cart
 async function loadCart() {
     const data = await apiCall('/cart-items/my-cart');
     if (data) {
         cart = data;
-        updateCartBadge();
+        document.getElementById('cartCount').textContent = cart.totalItems || 0;
     }
 }
 
-function updateCartBadge() {
-    document.getElementById('cartCount').textContent = cart.totalItems || 0;
-}
-
-// Load Product Details
+// Load Product
 async function loadProduct() {
     showLoading(true);
     
@@ -106,9 +86,7 @@ async function loadProduct() {
             headers: { 'Content-Type': 'application/json' }
         });
         
-        if (!response.ok) {
-            throw new Error('Product not found');
-        }
+        if (!response.ok) throw new Error('Product not found');
         
         const data = await response.json();
         currentProduct = data.product;
@@ -125,53 +103,36 @@ async function loadProduct() {
     }
 }
 
-// Display Product Details
+// Display Product
 function displayProduct(product) {
-    // Update breadcrumb
     document.getElementById('breadcrumbProduct').textContent = product.productName;
-    
-    // Product name and title
     document.getElementById('productName').textContent = product.productName;
     document.title = `${product.productName} - 67StreetFood`;
-    
-    // Price
     document.getElementById('productPrice').textContent = `₱${parseFloat(product.unitPrice).toFixed(2)}`;
-    
-    // Category
     document.getElementById('productCategory').textContent = product.category || 'Uncategorized';
     
-    // Stock status
-    const stockElement = document.getElementById('productStock');
     const stock = product.stock || 0;
-    
-    if (stock > 20) {
-        stockElement.innerHTML = '<span class="stock-badge stock-in">In Stock (' + stock + ')</span>';
-    } else if (stock > 0) {
-        stockElement.innerHTML = '<span class="stock-badge stock-low">Low Stock (' + stock + ')</span>';
-    } else {
-        stockElement.innerHTML = '<span class="stock-badge stock-out">Out of Stock</span>';
-    }
+    const stockElement = document.getElementById('productStock');
+    const stockClass = stock > 20 ? 'stock-in' : stock > 0 ? 'stock-low' : 'stock-out';
+    const stockText = stock > 20 ? `In Stock (${stock})` : stock > 0 ? `Low Stock (${stock})` : 'Out of Stock';
+    stockElement.innerHTML = `<span class="stock-badge ${stockClass}">${stockText}</span>`;
     
     document.getElementById('availableStock').textContent = stock;
     document.getElementById('quantity').max = stock;
     
-    // Seller
-    document.getElementById('productSeller').textContent = product.sellerName || 'Unknown Seller';
-    document.getElementById('sellerName').textContent = product.sellerName || 'Unknown Seller';
+    // Store seller info for chat functionality
+    currentProductSellerId = product.sellerId;
+    currentProductSellerName = product.sellerName || product.storeName || 'Unknown Seller';
     
-    // Seller avatar (first letter)
-    const sellerInitial = (product.sellerName || 'S').charAt(0).toUpperCase();
-    document.getElementById('sellerAvatar').textContent = sellerInitial;
-    
-    // Description
+    document.getElementById('productSeller').textContent = currentProductSellerName;
+    document.getElementById('sellerName').textContent = currentProductSellerName;
+    document.getElementById('sellerAvatar').textContent = currentProductSellerName.charAt(0).toUpperCase();
     document.getElementById('productDescription').textContent = product.description || 'No description available for this product.';
     
-    // Product image
     const imageUrl = product.imageUrl || 'https://via.placeholder.com/450?text=No+Image';
     document.getElementById('mainProductImage').src = imageUrl;
     document.getElementById('mainProductImage').alt = product.productName;
     
-    // Disable buttons if out of stock
     if (stock <= 0) {
         document.getElementById('addToCartBtn').disabled = true;
         document.getElementById('addToCartBtn').innerHTML = '<i class="fas fa-times"></i> Out of Stock';
@@ -185,30 +146,20 @@ async function loadRelatedProducts(category, sellerId) {
     const container = document.getElementById('relatedProductsContainer');
     
     try {
-        // Load products from same category or same seller
         const response = await fetch(`${API_BASE_URL}/products/?category=${category || ''}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to load related products');
-        }
+        if (!response.ok) throw new Error('Failed to load related products');
         
         const data = await response.json();
-        let relatedProducts = data.products || [];
-        
-        // Filter out current product and limit to 4
-        relatedProducts = relatedProducts
+        let relatedProducts = (data.products || [])
             .filter(p => p.productId !== currentProduct.productId)
             .slice(0, 4);
         
         if (relatedProducts.length === 0) {
-            container.innerHTML = `
-                <div class="loading-spinner">
-                    <p style="color: #6b7280;">No related products found</p>
-                </div>
-            `;
+            container.innerHTML = '<div class="loading-spinner"><p style="color: #6b7280;">No related products found</p></div>';
             return;
         }
         
@@ -233,18 +184,40 @@ async function loadRelatedProducts(category, sellerId) {
         
     } catch (error) {
         console.error('Error loading related products:', error);
-        container.innerHTML = `
-            <div class="loading-spinner">
-                <p style="color: #6b7280;">Unable to load related products</p>
-            </div>
-        `;
+        container.innerHTML = '<div class="loading-spinner"><p style="color: #6b7280;">Unable to load related products</p></div>';
     }
 }
 
-// View another product
 function viewProduct(productId) {
     window.location.href = `view_product.html?id=${productId}`;
 }
+
+// CHAT FUNCTIONALITY
+function chatWithSeller() {
+    // Check if user is logged in
+    if (!authToken) {
+        showToast('Please login to chat with seller', 'warning');
+        setTimeout(() => window.location.href = '../auth/login.html', 1500);
+        return;
+    }
+    
+    // Check if seller info is available
+    if (!currentProductSellerId || !currentProductSellerName) {
+        showToast('Seller information not available', 'error');
+        return;
+    }
+    
+    // Start chat with seller (function from chat.js)
+    if (typeof startChatWithSeller === 'function') {
+        startChatWithSeller(currentProductSellerId, currentProductSellerName);
+    } else {
+        console.error('Chat functionality not loaded');
+        showToast('Chat feature is not available', 'error');
+    }
+}
+
+// Make chatWithSeller globally accessible
+window.chatWithSeller = chatWithSeller;
 
 // Quantity Controls
 function increaseQuantity() {
@@ -262,10 +235,7 @@ function increaseQuantity() {
 function decreaseQuantity() {
     const input = document.getElementById('quantity');
     const current = parseInt(input.value);
-    
-    if (current > 1) {
-        input.value = current - 1;
-    }
+    if (current > 1) input.value = current - 1;
 }
 
 // Add to Cart
@@ -276,14 +246,12 @@ async function addToCart() {
     }
     
     const quantity = parseInt(document.getElementById('quantity').value);
-    const availableStock = currentProduct.stock || 0;
     
-    if (quantity > availableStock) {
+    if (quantity > (currentProduct.stock || 0)) {
         showToast('Not enough stock available', 'warning');
         return;
     }
     
-    // Call backend API to add to cart
     const data = await apiCall('/cart-items/', 'POST', {
         productId: currentProduct.productId,
         quantity: quantity
@@ -291,19 +259,13 @@ async function addToCart() {
     
     if (data) {
         showToast(`${quantity} item(s) added to cart`, 'success');
-        await loadCart(); // Reload cart from backend
-        
-        // Reset quantity to 1
+        await loadCart();
         document.getElementById('quantity').value = 1;
     }
 }
 
-// ==================== RESERVATION MODAL FUNCTIONS ====================
-
-// Open Reservation Modal
+// Reservation Modal
 function openReservationModal() {
-    console.log('Opening reservation modal...'); // Debug log
-    
     if (!currentProduct) {
         showToast('Product not loaded', 'danger');
         return;
@@ -315,7 +277,6 @@ function openReservationModal() {
         return;
     }
 
-    // Get modal element
     const modal = document.getElementById('reservationModal');
     if (!modal) {
         console.error('Modal element not found!');
@@ -323,13 +284,14 @@ function openReservationModal() {
         return;
     }
 
-    // Initialize reservation data
-    reservationData.productId = currentProduct.productId;
-    reservationData.productName = currentProduct.productName;
-    reservationData.unitPrice = parseFloat(currentProduct.unitPrice);
-    reservationData.quantity = parseInt(document.getElementById('quantity').value);
+    reservationData = {
+        ...reservationData,
+        productId: currentProduct.productId,
+        productName: currentProduct.productName,
+        unitPrice: parseFloat(currentProduct.unitPrice),
+        quantity: parseInt(document.getElementById('quantity').value)
+    };
     
-    // Set modal available stock
     const modalStock = document.getElementById('modalAvailableStock');
     const resQty = document.getElementById('reservationQuantity');
     
@@ -339,7 +301,6 @@ function openReservationModal() {
         resQty.max = stock;
     }
 
-    // Set minimum date to today
     const dateInput = document.getElementById('reservationDate');
     if (dateInput) {
         const today = new Date();
@@ -347,110 +308,68 @@ function openReservationModal() {
         dateInput.min = today.toISOString().slice(0, 16);
     }
 
-    // Reset to step 1
     currentStep = 1;
     showStep(1);
-
-    // Show modal with display flex and active class
     modal.style.display = 'flex';
-    // Force reflow
     modal.offsetHeight;
     modal.classList.add('active');
-    
-    console.log('Modal should be visible now'); // Debug log
 }
 
-// Close Reservation Modal
 function closeReservationModal() {
     const modal = document.getElementById('reservationModal');
     modal.classList.remove('active');
-    
     setTimeout(() => {
         modal.style.display = 'none';
         resetModal();
     }, 300);
 }
 
-// Reset Modal
 function resetModal() {
     currentStep = 1;
     showStep(1);
     
-    // Reset form fields
-    document.getElementById('reservationDate').value = '';
+    ['reservationDate', 'specialRequests', 'deliveryAddress'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    
     document.getElementById('numberOfPeople').value = 1;
     document.getElementById('reservationQuantity').value = 1;
-    document.getElementById('specialRequests').value = '';
-    document.getElementById('deliveryAddress').value = '';
-    
-    // Reset radio buttons
     document.getElementById('pickupOption').checked = false;
     document.getElementById('deliveryOption').checked = false;
     document.getElementById('cashOption').checked = true;
-    
-    // Hide delivery address section
     document.getElementById('deliveryAddressSection').style.display = 'none';
     document.getElementById('pickupLocationSection').style.display = 'none';
 }
 
-// Show Step
 function showStep(step) {
-    // Hide all steps
     for (let i = 1; i <= 4; i++) {
-        document.getElementById(`step${i}`).style.display = 'none';
+        document.getElementById(`step${i}`).style.display = i === step ? 'block' : 'none';
     }
-    
-    // Show current step
-    document.getElementById(`step${step}`).style.display = 'block';
-    
-    // Update progress
     updateProgress(step);
 }
 
-// Update Progress Steps
 function updateProgress(step) {
-    const steps = document.querySelectorAll('.step');
-    
-    steps.forEach((stepEl, index) => {
+    document.querySelectorAll('.step').forEach((stepEl, index) => {
         const stepNum = index + 1;
-        
         stepEl.classList.remove('active', 'completed');
-        
-        if (stepNum < step) {
-            stepEl.classList.add('completed');
-        } else if (stepNum === step) {
-            stepEl.classList.add('active');
-        }
+        if (stepNum < step) stepEl.classList.add('completed');
+        else if (stepNum === step) stepEl.classList.add('active');
     });
 }
 
-// Next Step
 function nextStep(step) {
-    // Validate current step
-    if (!validateStep(currentStep)) {
-        return;
-    }
-    
-    // Collect data from current step
+    if (!validateStep(currentStep)) return;
     collectStepData(currentStep);
-    
-    // Update confirmation if going to step 4
-    if (step === 4) {
-        updateConfirmation();
-    }
-    
-    // Move to next step
+    if (step === 4) updateConfirmation();
     currentStep = step;
     showStep(step);
 }
 
-// Previous Step
 function prevStep(step) {
     currentStep = step;
     showStep(step);
 }
 
-// Validate Step
 function validateStep(step) {
     if (step === 1) {
         const date = document.getElementById('reservationDate').value;
@@ -462,10 +381,7 @@ function validateStep(step) {
             return false;
         }
         
-        const selectedDate = new Date(date);
-        const now = new Date();
-        
-        if (selectedDate < now) {
+        if (new Date(date) < new Date()) {
             showToast('Reservation date must be in the future', 'warning');
             return false;
         }
@@ -480,8 +396,7 @@ function validateStep(step) {
             return false;
         }
         
-        const maxStock = parseInt(document.getElementById('reservationQuantity').max);
-        if (quantity > maxStock) {
+        if (quantity > parseInt(document.getElementById('reservationQuantity').max)) {
             showToast('Quantity exceeds available stock', 'warning');
             return false;
         }
@@ -495,19 +410,14 @@ function validateStep(step) {
             return false;
         }
         
-        if (deliveryMethod.value === 'delivery') {
-            const address = document.getElementById('deliveryAddress').value.trim();
-            if (!address) {
-                showToast('Please enter delivery address', 'warning');
-                return false;
-            }
+        if (deliveryMethod.value === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) {
+            showToast('Please enter delivery address', 'warning');
+            return false;
         }
     }
     
     if (step === 3) {
-        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
-        
-        if (!paymentMethod) {
+        if (!document.querySelector('input[name="paymentMethod"]:checked')) {
             showToast('Please select a payment method', 'warning');
             return false;
         }
@@ -516,7 +426,6 @@ function validateStep(step) {
     return true;
 }
 
-// Collect Step Data
 function collectStepData(step) {
     if (step === 1) {
         reservationData.reservationDate = document.getElementById('reservationDate').value;
@@ -529,12 +438,8 @@ function collectStepData(step) {
     if (step === 2) {
         const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked');
         reservationData.deliveryMethod = deliveryMethod ? deliveryMethod.value : 'pickup';
-        
-        if (reservationData.deliveryMethod === 'delivery') {
-            reservationData.deliveryAddress = document.getElementById('deliveryAddress').value.trim();
-        } else {
-            reservationData.deliveryAddress = '';
-        }
+        reservationData.deliveryAddress = reservationData.deliveryMethod === 'delivery' 
+            ? document.getElementById('deliveryAddress').value.trim() : '';
     }
     
     if (step === 3) {
@@ -543,7 +448,6 @@ function collectStepData(step) {
     }
 }
 
-// Modal Quantity Controls
 function increaseModalQuantity() {
     const input = document.getElementById('reservationQuantity');
     const max = parseInt(input.max);
@@ -559,22 +463,16 @@ function increaseModalQuantity() {
 function decreaseModalQuantity() {
     const input = document.getElementById('reservationQuantity');
     const current = parseInt(input.value);
-    
-    if (current > 1) {
-        input.value = current - 1;
-    }
+    if (current > 1) input.value = current - 1;
 }
 
-// Select Delivery Method
 function selectDeliveryMethod(method) {
     if (method === 'pickup') {
         document.getElementById('pickupOption').checked = true;
         document.getElementById('deliveryAddressSection').style.display = 'none';
         document.getElementById('pickupLocationSection').style.display = 'flex';
-        
-        // Set pickup location (you can customize this)
         document.getElementById('pickupLocation').textContent = 
-            currentProduct.sellerName + ' Store - Main Branch, City Center';
+            currentProductSellerName + ' Store - Main Branch, City Center';
     } else {
         document.getElementById('deliveryOption').checked = true;
         document.getElementById('deliveryAddressSection').style.display = 'block';
@@ -582,44 +480,34 @@ function selectDeliveryMethod(method) {
     }
 }
 
-// Select Payment Method
 function selectPaymentMethod(method) {
-    document.getElementById('cashOption').checked = (method === 'cash');
-    document.getElementById('gcashOption').checked = (method === 'gcash');
-    document.getElementById('cardOption').checked = (method === 'card');
+    ['cash', 'gcash', 'card'].forEach(m => {
+        document.getElementById(`${m}Option`).checked = (m === method);
+    });
 }
 
-// Update Confirmation
 function updateConfirmation() {
-    // Product details
     document.getElementById('confirmProductName').textContent = reservationData.productName;
     document.getElementById('confirmQuantity').textContent = reservationData.quantity;
     document.getElementById('confirmUnitPrice').textContent = `₱${reservationData.unitPrice.toFixed(2)}`;
     
-    // Reservation info
     const date = new Date(reservationData.reservationDate);
-    const formattedDate = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+    document.getElementById('confirmDate').textContent = date.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
-    document.getElementById('confirmDate').textContent = formattedDate;
     document.getElementById('confirmPeople').textContent = reservationData.numberOfPeople;
     
-    // Delivery details
     const deliveryMethodText = reservationData.deliveryMethod === 'pickup' ? 'Pick Up' : 'Delivery';
     document.getElementById('confirmDeliveryMethod').textContent = deliveryMethodText;
     
+    const addressItem = document.getElementById('confirmAddressItem');
     if (reservationData.deliveryMethod === 'delivery') {
-        document.getElementById('confirmAddressItem').style.display = 'flex';
+        addressItem.style.display = 'flex';
         document.getElementById('confirmAddress').textContent = reservationData.deliveryAddress;
     } else {
-        document.getElementById('confirmAddressItem').style.display = 'none';
+        addressItem.style.display = 'none';
     }
     
-    // Payment method
     const paymentMethodMap = {
         'cash': 'Cash on Delivery/Pickup',
         'gcash': 'GCash',
@@ -628,20 +516,15 @@ function updateConfirmation() {
     document.getElementById('confirmPaymentMethod').textContent = 
         paymentMethodMap[reservationData.paymentMethod] || 'Cash';
     
-    // Total amount
     document.getElementById('confirmTotal').textContent = `₱${reservationData.totalAmount.toFixed(2)}`;
 }
 
-// Submit Reservation
 async function submitReservation() {
-    // Show loading
     showLoading(true);
     
     try {
-        // Collect final step data
         collectStepData(3);
         
-        // Prepare order payload
         const orderPayload = {
             items: [{
                 productId: reservationData.productId,
@@ -653,9 +536,6 @@ async function submitReservation() {
             notes: reservationData.specialRequests || null
         };
         
-        console.log('Submitting order:', orderPayload);
-        
-        // Create order first
         const orderResponse = await fetch(`${API_BASE_URL}/orders/create`, {
             method: 'POST',
             headers: {
@@ -671,18 +551,13 @@ async function submitReservation() {
         }
         
         const orderResult = await orderResponse.json();
-        console.log('Order created:', orderResult);
-        
         const orderId = orderResult.order.orderId;
         
-        // Now create the reservation record
         const reservationPayload = {
             reservationDate: reservationData.reservationDate,
             numberOfPeople: reservationData.numberOfPeople,
             specialRequests: reservationData.specialRequests || null
         };
-        
-        console.log('Creating reservation record:', reservationPayload);
         
         const reservationResponse = await fetch(`${API_BASE_URL}/orders/reservations/create`, {
             method: 'POST',
@@ -694,45 +569,23 @@ async function submitReservation() {
         });
         
         if (!reservationResponse.ok) {
-            const errorData = await reservationResponse.json();
-            console.warn('Reservation record creation failed:', errorData);
-            // Don't throw error, order was created successfully
-        } else {
-            const reservationResult = await reservationResponse.json();
-            console.log('Reservation record created:', reservationResult);
+            console.warn('Reservation record creation failed');
         }
         
-        // Create payment if not cash
         if (reservationData.paymentMethod !== 'cash') {
-            const paymentPayload = {
-                paymentMethod: reservationData.paymentMethod
-            };
-            
-            const paymentResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
+            await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`
                 },
-                body: JSON.stringify(paymentPayload)
+                body: JSON.stringify({ paymentMethod: reservationData.paymentMethod })
             });
-            
-            if (!paymentResponse.ok) {
-                console.warn('Payment creation failed');
-            } else {
-                const paymentResult = await paymentResponse.json();
-                console.log('Payment created:', paymentResult);
-            }
         }
         
-        // Success
         showToast('Reservation confirmed successfully!', 'success');
         closeReservationModal();
-        
-        // Redirect to orders page
-        setTimeout(() => {
-            window.location.href = 'customer_dashboard.html?tab=orders';
-        }, 1500);
+        setTimeout(() => window.location.href = 'customer_dashboard.html?tab=orders', 1500);
         
     } catch (error) {
         console.error('Error creating reservation:', error);
@@ -742,64 +595,43 @@ async function submitReservation() {
     }
 }
 
-// ==================== END RESERVATION MODAL FUNCTIONS ====================
-
-// View Seller Products
 function viewSellerProducts() {
-    if (currentProduct && currentProduct.sellerId) {
+    if (currentProduct?.sellerId) {
         window.location.href = `customer_dashboard.html?seller=${currentProduct.sellerId}`;
     }
 }
 
-// Logout
 function logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('user_type');
-    // Remove old localStorage cart (if it exists)
-    localStorage.removeItem('cart');
+    ['access_token', 'user', 'user_type', 'cart'].forEach(item => localStorage.removeItem(item));
     window.location.href = '../auth/login.html';
 }
 
-// Loading Overlay
 function showLoading(show) {
     document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
 }
 
-// Toast Notification
 function showToast(message, type = 'info') {
-    const bgColor = {
-        'success': '#dcfce7',
-        'error': '#fee2e2',
-        'warning': '#fef3c7',
-        'info': '#dbeafe',
-        'danger': '#fee2e2'
-    }[type] || '#dbeafe';
+    const colors = {
+        success: { bg: '#dcfce7', text: '#166534' },
+        error: { bg: '#fee2e2', text: '#991b1b' },
+        warning: { bg: '#fef3c7', text: '#92400e' },
+        info: { bg: '#dbeafe', text: '#1e40af' },
+        danger: { bg: '#fee2e2', text: '#991b1b' }
+    };
     
-    const textColor = {
-        'success': '#166534',
-        'error': '#991b1b',
-        'warning': '#92400e',
-        'info': '#1e40af',
-        'danger': '#991b1b'
-    }[type] || '#1e40af';
+    const color = colors[type] || colors.info;
     
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.style.cssText = `
-        position: fixed;
-        top: 1rem;
-        right: 1rem;
-        background: ${bgColor};
-        color: ${textColor};
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem;
+        position: fixed; top: 1rem; right: 1rem;
+        background: ${color.bg}; color: ${color.text};
+        padding: 1rem 1.5rem; border-radius: 0.5rem;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        font-weight: 500;
+        z-index: 10000; font-weight: 500;
         animation: slideIn 0.3s ease-out;
     `;
-    toast.innerHTML = message;
+    toast.textContent = message;
     document.body.appendChild(toast);
     
     setTimeout(() => {
@@ -808,46 +640,29 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// Close modal when clicking outside
-window.onclick = function(event) {
+// Event Listeners
+window.onclick = (event) => {
     const modal = document.getElementById('reservationModal');
-    if (event.target === modal) {
-        closeReservationModal();
-    }
-}
+    if (event.target === modal) closeReservationModal();
+};
 
-// Handle ESC key to close modal
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         const modal = document.getElementById('reservationModal');
-        if (modal.classList.contains('active')) {
-            closeReservationModal();
-        }
+        if (modal?.classList.contains('active')) closeReservationModal();
     }
 });
 
-// Add animation styles
+// Animation Styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
     @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
     }
 `;
 document.head.appendChild(style);

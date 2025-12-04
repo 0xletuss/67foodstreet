@@ -12,9 +12,10 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 .sidebar{min-height:100vh;background:linear-gradient(180deg,var(--primary-color) 0%,#34495e 100%);color:white;position:fixed;top:0;left:0;width:250px;z-index:1000;transition:all .3s}
 .sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.1)}
 .sidebar-menu{padding:20px 0}
-.sidebar-menu a{display:flex;align-items:center;padding:15px 20px;color:rgba(255,255,255,.8);text-decoration:none;transition:all .3s}
+.sidebar-menu a{display:flex;align-items:center;padding:15px 20px;color:rgba(255,255,255,.8);text-decoration:none;transition:all .3s;position:relative}
 .sidebar-menu a:hover,.sidebar-menu a.active{background-color:rgba(255,255,255,.1);color:white;border-left:4px solid var(--secondary-color)}
 .sidebar-menu a i{margin-right:10px;font-size:1.2rem}
+.sidebar-menu a .badge{position:absolute;right:20px;background:#e74c3c;color:white;border-radius:12px;padding:2px 8px;font-size:0.75rem;min-width:20px;text-align:center}
 .main-content{margin-left:250px;padding:20px;min-height:100vh}
 .top-navbar{background:white;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.1);margin-bottom:30px;border-radius:10px}
 .stat-card{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 4px rgba(0,0,0,.1);transition:transform .3s;height:100%}
@@ -52,12 +53,53 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 .menu-toggle{display:none;background:none;border:none;color:#2c3e50;font-size:1.5rem;cursor:pointer;padding:8px 12px;border-radius:6px;transition:all .3s}
 .menu-toggle:hover{background-color:#f0f0f0}
 .menu-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999}
+
+/* Chat Styles */
+.chat-container{display:flex;height:600px;background:white;border-radius:10px;overflow:hidden}
+.chat-sidebar{width:320px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column}
+.chat-main{flex:1;display:flex;flex-direction:column}
+.chat-header-bar{padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#f9fafb;display:flex;align-items:center;gap:12px}
+.chat-header-bar h6{margin:0;font-weight:600;color:#1f2937}
+.chat-header-bar button{background:none;border:none;color:#6b7280;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all .2s}
+.chat-header-bar button:hover{background:#e5e7eb;color:#1f2937}
+.chat-list{flex:1;overflow-y:auto}
+.seller-chat-item{padding:14px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:all .2s;display:flex;gap:12px;align-items:center}
+.seller-chat-item:hover{background:#f9fafb}
+.seller-chat-item.unread{background:#eff6ff}
+.chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1rem;flex-shrink:0}
+.chat-info{flex:1;min-width:0}
+.chat-name{font-weight:600;color:#1f2937;font-size:0.9rem;margin-bottom:2px}
+.chat-last-message{font-size:0.8rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.chat-time{font-size:0.75rem;color:#9ca3af}
+.unread-badge{background:#ef4444;color:white;border-radius:10px;padding:2px 8px;font-size:0.7rem;font-weight:600;min-width:20px;text-align:center}
+.chat-messages-area{flex:1;overflow-y:auto;padding:20px;background:#f9fafb}
+.chat-message{margin-bottom:16px;display:flex}
+.chat-message.sent{justify-content:flex-end}
+.chat-message.received{justify-content:flex-start}
+.message-bubble{max-width:70%;padding:10px 14px;border-radius:12px;word-wrap:break-word}
+.chat-message.sent .message-bubble{background:#3b82f6;color:white;border-bottom-right-radius:4px}
+.chat-message.received .message-bubble{background:white;color:#1f2937;border:1px solid #e5e7eb;border-bottom-left-radius:4px}
+.message-bubble p{margin:0;font-size:0.9rem;line-height:1.4}
+.message-time{display:block;font-size:0.7rem;margin-top:4px;opacity:0.7}
+.chat-input-area{padding:16px;border-top:1px solid #e5e7eb;background:white;display:flex;gap:10px;align-items:flex-end}
+.chat-input-area textarea{flex:1;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;font-size:0.9rem;resize:none;min-height:40px;max-height:100px;font-family:inherit}
+.chat-input-area textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.chat-input-area button{background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;transition:all .2s;font-size:0.9rem}
+.chat-input-area button:hover{background:#2563eb}
+.chat-input-area button:disabled{background:#9ca3af;cursor:not-allowed}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
 @media (max-width:768px){
 .menu-toggle{display:block}
 .sidebar{position:fixed;left:-250px;top:0;height:100vh;z-index:1001;transition:left .3s ease}
 .sidebar.active{left:0}
 .menu-overlay.active{display:block}
 .main-content{margin-left:0}
+.chat-container{height:calc(100vh - 150px)}
+.chat-sidebar{width:100%}
+.chat-main{display:none}
 }
 </style>
 </head>
@@ -70,6 +112,7 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 <a href="#" data-section="orders"><i class="bi bi-cart-check"></i> Orders</a>
 <a href="#" data-section="reservations"><i class="bi bi-calendar-check"></i> Reservations</a>
 <a href="#" data-section="inventory"><i class="bi bi-boxes"></i> Inventory</a>
+<a href="#" data-section="chats" onclick="showChatsSection()"><i class="bi bi-chat-dots"></i> Chats <span class="badge" id="sellerChatUnreadBadge" style="display:none;">0</span></a>
 <a href="#" data-section="analytics"><i class="bi bi-graph-up"></i> Analytics</a>
 <a href="#" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Logout</a>
 </div>
@@ -83,6 +126,8 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 </div>
 <div><button class="btn btn-outline-secondary btn-sm"><i class="bi bi-bell"></i> Notifications</button></div>
 </div>
+
+<!-- Dashboard Section -->
 <div id="dashboardSection" class="section-content">
 <div class="row mb-4">
 <div class="col-md-3 mb-3"><div class="stat-card primary"><div class="icon"><i class="bi bi-box-seam"></i></div><h6 class="text-muted">Total Products</h6><h3 id="totalProducts">0</h3></div></div>
@@ -92,34 +137,87 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 </div>
 <div class="content-section"><h5 class="section-title">Recent Orders</h5><div id="recentOrdersTable" class="orders-grid"><div class="order-flashcard" style="grid-column:1/-1"><div style="text-align:center;color:#999">Loading...</div></div></div></div>
 </div>
+
+<!-- Products Section -->
 <div id="productsSection" class="section-content" style="display:none">
 <div class="content-section">
 <div class="d-flex justify-content-between align-items-center mb-4"><h5 class="section-title mb-0">Products Management</h5><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productModal"><i class="bi bi-plus-circle"></i> Add Product</button></div>
 <div class="table-responsive"><table class="table table-hover"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody id="productsTable"><tr><td colspan="7" class="text-center">Loading...</td></tr></tbody></table></div>
 </div>
 </div>
+
+<!-- Orders Section -->
 <div id="ordersSection" class="section-content" style="display:none">
 <div class="content-section">
 <div class="d-flex justify-content-between align-items-center mb-4"><h5 class="section-title mb-0">Orders Management</h5><select class="form-select w-auto" id="orderStatusFilter"><option value="">All Orders</option><option value="Pending">Pending</option><option value="Confirmed">Confirmed</option><option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option></select></div>
 <div id="ordersTable" class="orders-grid"><div class="order-flashcard" style="grid-column:1/-1"><div style="text-align:center;color:#999">Loading...</div></div></div>
 </div>
 </div>
+
+<!-- Reservations Section -->
 <div id="reservationsSection" class="section-content" style="display:none">
 <div class="content-section">
 <div class="d-flex justify-content-between align-items-center mb-4"><h5 class="section-title mb-0">Reservations</h5><select class="form-select w-auto" id="reservationStatusFilter"><option value="">All Reservations</option><option value="Pending">Pending</option><option value="Confirmed">Confirmed</option><option value="Cancelled">Cancelled</option></select></div>
 <div id="reservationsGrid" class="orders-grid"><div class="order-flashcard" style="grid-column:1/-1"><div style="text-align:center;color:#999">Loading...</div></div></div>
 </div>
 </div>
+
+<!-- Inventory Section -->
 <div id="inventorySection" class="section-content" style="display:none">
 <div class="content-section"><h5 class="section-title">Inventory Management</h5><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Product</th><th>Current Stock</th><th>Reorder Level</th><th>Last Restocked</th><th>Status</th><th>Actions</th></tr></thead><tbody id="inventoryTable"><tr><td colspan="6" class="text-center">Loading...</td></tr></tbody></table></div></div>
 </div>
+
+<!-- CHATS SECTION -->
+<div id="chatsSection" class="section-content" style="display:none">
+<div class="content-section">
+<h5 class="section-title mb-4"><i class="bi bi-chat-dots"></i> Customer Messages</h5>
+<div class="chat-container">
+<!-- Chat Sidebar -->
+<div class="chat-sidebar">
+<div class="chat-header-bar">
+<h6><i class="bi bi-chat-text"></i> Conversations</h6>
+</div>
+<div class="chat-list" id="sellerChatList">
+<div style="text-align: center; padding: 20px; color: #999;">
+<i class="bi bi-arrow-clockwise spin"></i> Loading chats...
+</div>
+</div>
+</div>
+
+<!-- Chat Messages -->
+<div class="chat-main" id="sellerChatMessages" style="display:none">
+<div class="chat-header-bar">
+<button id="sellerChatBackBtn" onclick="backToSellerChatList()" style="display:none">
+<i class="bi bi-arrow-left"></i>
+</button>
+<div class="chat-avatar">C</div>
+<h6 id="sellerChatCustomerName">Customer</h6>
+</div>
+<div class="chat-messages-area" id="sellerChatMessagesContainer">
+<!-- Messages will load here -->
+</div>
+<div class="chat-input-area">
+<textarea id="sellerChatInput" placeholder="Type your message..." rows="1"></textarea>
+<button id="sellerChatSendBtn" onclick="sendSellerMessage()">
+<i class="bi bi-send"></i> Send
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Analytics Section -->
 <div id="analyticsSection" class="section-content" style="display:none">
 <div class="row">
 <div class="col-md-12 mb-4"><div class="content-section"><h5 class="section-title">Revenue Overview</h5><div class="mb-3"><select class="form-select w-auto" id="revenuePeriod"><option value="day">Last 24 Hours</option><option value="week">Last Week</option><option value="month" selected>Last Month</option><option value="year">Last Year</option></select></div><div class="chart-container"><canvas id="revenueChart"></canvas></div></div></div>
 <div class="col-md-12"><div class="content-section"><h5 class="section-title">Top Selling Products</h5><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Product Name</th><th>Total Sold</th><th>Total Revenue</th></tr></thead><tbody id="topProductsTable"><tr><td colspan="3" class="text-center">Loading...</td></tr></tbody></table></div></div></div>
 </div>
 </div>
+
 </div>
+
+<!-- Modals (keep existing modals) -->
 <div class="modal fade" id="productModal" tabindex="-1">
 <div class="modal-dialog modal-lg"><div class="modal-content">
 <div class="modal-header"><h5 class="modal-title" id="productModalTitle">Add Product</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
@@ -143,6 +241,8 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="saveProductBtn"><i class="bi bi-save"></i> Save Product</button></div>
 </div></div>
 </div>
+
+<!-- Other modals (stock, order, reservation) remain the same -->
 <div class="modal fade" id="stockModal" tabindex="-1">
 <div class="modal-dialog"><div class="modal-content">
 <div class="modal-header"><h5 class="modal-title">Update Stock</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
@@ -156,6 +256,7 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="updateStockBtn">Update Stock</button></div>
 </div></div>
 </div>
+
 <div class="modal fade" id="orderModal" tabindex="-1">
 <div class="modal-dialog modal-lg"><div class="modal-content">
 <div class="modal-header"><h5 class="modal-title">Order Details</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
@@ -163,6 +264,7 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
 </div></div>
 </div>
+
 <div class="modal fade" id="reservationModal" tabindex="-1">
 <div class="modal-dialog modal-lg"><div class="modal-content">
 <div class="modal-header"><h5 class="modal-title">Reservation Details</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
@@ -170,9 +272,11 @@ body{background-color:#f8f9fa;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-
 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
 </div></div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="../dashboard/js/seller_dashboard.js"></script>
 <script src="../dashboard/js/reservation.js"></script>
+<script src="../dashboard/js/seller_chat.js"></script>
 </body>
 </html>

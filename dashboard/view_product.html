@@ -7,6 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/view_product.css">
     <link rel="stylesheet" href="css/reservation_modal.css">
+    <link rel="stylesheet" href="css/chat.css">
 </head>
 <body>
     <!-- Header -->
@@ -112,9 +113,14 @@
                             <div class="seller-name" id="sellerName">Loading...</div>
                             <div class="seller-badge">Official Store</div>
                         </div>
-                        <button class="btn btn-primary seller-action" onclick="viewSellerProducts()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
-                            <i class="fas fa-store"></i> View Shop
-                        </button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary seller-action" onclick="viewSellerProducts()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                <i class="fas fa-store"></i> View Shop
+                            </button>
+                            <button class="btn btn-outline seller-action" onclick="chatWithSeller()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                <i class="fas fa-comment"></i> Chat
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -410,7 +416,10 @@
         </div>
     </div>
 
-    <!-- Single JavaScript file with all functionality -->
+    <!-- Scripts -->
     <script src="js/view_product.js"></script>
+    <script src="js/chat.js"></script>
+    
+    
 </body>
 </html>
